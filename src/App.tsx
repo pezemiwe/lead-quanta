@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { Component, type ErrorInfo, lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { PersonaProvider } from "./context/persona";
 import { GovernanceProvider } from "./context/governance";
@@ -53,13 +53,72 @@ const GovernanceModule = lazy(() =>
   })),
 );
 
+type RouteErrorBoundaryState = {
+  hasError: boolean;
+  errorMessage: string;
+};
+
+class RouteErrorBoundary extends Component<
+  { children: React.ReactNode },
+  RouteErrorBoundaryState
+> {
+  state: RouteErrorBoundaryState = {
+    hasError: false,
+    errorMessage: "",
+  };
+
+  static getDerivedStateFromError(error: unknown): RouteErrorBoundaryState {
+    return {
+      hasError: true,
+      errorMessage:
+        error instanceof Error
+          ? error.message
+          : "Failed to load this module. Please try again.",
+    };
+  }
+
+  componentDidCatch(error: unknown, info: ErrorInfo): void {
+    // Preserve diagnostics for deployment-related chunk loading failures.
+    console.error("RouteErrorBoundary caught error", { error, info });
+  }
+
+  handleRetry = () => {
+    window.location.reload();
+  };
+
+  render() {
+    if (!this.state.hasError) {
+      return this.props.children;
+    }
+
+    return (
+      <div className="mx-auto flex min-h-[60vh] w-full max-w-xl flex-col items-center justify-center px-6 text-center">
+        <h2 className="text-xl font-semibold text-slate-900">Module failed to load</h2>
+        <p className="mt-2 text-sm text-slate-600">
+          {this.state.errorMessage.includes("Failed to fetch dynamically imported module")
+            ? "A fresh deployment was detected while this tab was open. Reload to fetch the latest app assets."
+            : this.state.errorMessage}
+        </p>
+        <button
+          type="button"
+          onClick={this.handleRetry}
+          className="mt-5 inline-flex items-center rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+        >
+          Reload app
+        </button>
+      </div>
+    );
+  }
+}
+
 export function App() {
   return (
     <PersonaProvider>
       <GovernanceProvider>
         <PortfolioRegistryProvider>
-          <Suspense fallback={<PageLoader label="Loading module…" />}>
-            <Routes>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader label="Loading module…" />}>
+              <Routes>
               {/* Public */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
@@ -271,9 +330,10 @@ export function App() {
               />
 
               {/* Fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </RouteErrorBoundary>
         </PortfolioRegistryProvider>
       </GovernanceProvider>
     </PersonaProvider>
