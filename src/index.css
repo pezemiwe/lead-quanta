@@ -1,0 +1,161 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import "tailwindcss";
+
+@theme {
+  /* Leadway Holdings brand palette */
+  --color-primary: #f7941d;
+  --color-mid-red: #e07b12;
+  --color-deep-red: #c2410c;
+  --color-dark-red: #9a3412;
+  --color-bright-red: #fdb813;
+  --color-pale-red: #fff7ed;
+
+  /* Semantic aliases kept for compatibility */
+  --color-mid-green: #e07b12;
+  --color-deep-green: #c2410c;
+  --color-dark-green: #9a3412;
+  --color-pale-green: #fff7ed;
+
+  /* Neutrals */
+  --color-dark-gray: #1a1a1a;
+  --color-light-gray: #e6e6e6;
+  --color-surface: #ffffff;
+  --color-surface-muted: #fafafa;
+  --color-border: #e2e2e2;
+
+  /* State */
+  --color-focus: #f7941d;
+  --color-success: #0f766e;
+  --color-danger: #b91c1c;
+
+  /* Extra-small breakpoint for 2-column mobile grids */
+  --breakpoint-xs: 480px;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+html {
+  scroll-behavior: smooth;
+}
+
+:root {
+  font-family: "Inter", system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-surface-muted);
+  color: var(--color-dark-gray);
+}
+
+/* Global pointer cursor on all interactive elements */
+button,
+a,
+select,
+label[for],
+[role="button"],
+[role="tab"],
+[role="option"],
+[role="menuitem"] {
+  cursor: pointer;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.shimmer-skeleton {
+  background-image: linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0.22) 0%,
+    rgba(248, 250, 252, 0.78) 50%,
+    rgba(148, 163, 184, 0.22) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* ── Landing page animations ─────────────────────────────────── */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-8px) rotate(0.5deg);
+  }
+  66% {
+    transform: translateY(-4px) rotate(-0.5deg);
+  }
+}
+
+@keyframes float-delayed {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes hero-gradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+.animate-marquee-slow {
+  animation: marquee 60s linear infinite;
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+.animate-float-delayed {
+  animation: float-delayed 7s ease-in-out 1.5s infinite;
+}
+.animate-pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
+}
