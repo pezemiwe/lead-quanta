@@ -1,618 +1,572 @@
-import { useState, useMemo } from "react";
-import {
-  Save,
-  RotateCcw,
-  Info,
-  Loader2,
-  Paperclip,
-  X,
-  AlertTriangle,
-} from "lucide-react";
+﻿import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ChevronRight, Loader2, Paperclip, RotateCcw, X } from "lucide-react";
+import { Modal } from "../../../components/shared/modal";
 import { usePortfolioRegistry } from "../../portfolio/portfolio-registry";
-import { GovernanceBar } from "../../../components/shared/governance-bar";
-import { useGovernance } from "../../../context/governance";
 import { usePersona } from "../../../context/persona";
-import { BOOK_COMPUTED } from "../../portfolio/engine/book-compute";
+import { canDo } from "../../../context/platform-personas";
+import { useWorkflow } from "../../workflow/store";
+import { DealSlipWorkspace } from "../../workflow/components/deal-slip-workspace";
+import { toaster } from "../../../components/shared/toaster";
+import {
+  ASSET_CLASSES,
+  dealNotional,
+  emptyFieldsForAssetClass,
+  getDocumentSlots,
+  getEconomicsFields,
+  SETTLEMENT_FIELDS,
+  validateDocuments,
+  validateMandatoryFields,
+} from "../../workflow/engine/fields";
+import type { AssetClass } from "../../workflow/types";
+import {
+  authorisedPortfolioIds,
+  TRANSACTION_TYPES,
+} from "../data/capture-masters";
+import {
+  addDays,
+  applyDerivedFields,
+  isValidIsin,
+  isValueDateValid,
+} from "../utils/capture-calculations";
+import {
+  CaptureFieldInput,
+  resolveBankAccount,
+  resolveCounterpartyBank,
+} from "../components/capture-field-input";
+import { LimitAlertsBanner, LimitAlertsPanel } from "../components/limit-alerts";
+import { buildLimitPreview, limitAlerts } from "../utils/capture-limits";
+import { fmtMoney } from "../utils/blotter-metrics";
 
-type FormState = {
-  instrumentType: string;
-  isin: string;
-  instrumentName: string;
-  issuer: string;
-  sector: string;
-  currency: string;
-  classification: string;
-  ifrs13Level: string;
-  faceValue: string;
-  purchasePrice: string;
-  purchaseYield: string;
-  couponRate: string;
-  couponFrequency: string;
-  discountRate: string;
-  purchaseDate: string;
-  maturityDate: string;
-  settlementDate: string;
-  custodian: string;
-  counterparty: string;
-  dayCount: string;
-  portfolio: string;
-  notes: string;
-};
+type UploadedDoc = { file: File; uploadedAt: string };
 
-const EMPTY: FormState = {
-  instrumentType: "",
-  isin: "",
-  instrumentName: "",
-  issuer: "",
-  sector: "",
-  currency: "NGN",
-  classification: "AC",
-  ifrs13Level: "Level 2",
-  faceValue: "",
-  purchasePrice: "1.00",
-  purchaseYield: "",
-  couponRate: "",
-  couponFrequency: "Semi-Annual",
-  discountRate: "",
-  purchaseDate: "2026-05-28",
-  maturityDate: "",
-  settlementDate: "2026-05-30",
-  custodian: "",
-  counterparty: "",
-  dayCount: "Actual/365",
-  portfolio: "Trading Book",
-  notes: "",
-};
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
-const INST_TYPES = [
-  "FGN Bond",
-  "Treasury Bill",
-  "Corporate Bond",
-  "Eurobond",
-  "Commercial Paper",
-  "Equity",
-  "Sukuk",
-  "Money Market",
-];
-const CURRENCIES = ["NGN", "USD", "GBP", "EUR"];
-const CLASSIFICATIONS = [
-  { value: "AC", label: "Amortised Cost (AC)" },
-  {
-    value: "FVOCI",
-    label: "Fair Value through Other Comprehensive Income (FVOCI)",
-  },
-  { value: "FVTPL", label: "Fair Value through Profit or Loss (FVTPL)" },
-];
-const IFRS13_LEVELS = ["Level 1", "Level 2", "Level 3"];
-const FREQ_OPTIONS = ["Monthly", "Quarterly", "Semi-Annual", "Annual", "Zero"];
-const DAY_COUNTS = ["Actual/365", "Actual/360", "30/360", "Actual/Actual"];
-const SECTORS = [
-  "Federal Government",
-  "Banking",
-  "Telecoms",
-  "Oil & Gas",
-  "Consumer Goods",
-  "Real Estate",
-  "Infrastructure",
-  "Utilities",
-];
-
-function FieldLabel({
-  children,
-  tip,
-}: {
-  children: React.ReactNode;
-  tip?: string;
-}) {
-  return (
-    <label className="flex items-center gap-1 text-xs font-medium text-gray-500">
-      {children}
-      {tip && (
-        <Info className="h-3 w-3 text-gray-400 cursor-help" aria-label={tip} />
-      )}
-    </label>
-  );
-}
-
-function TextInput({
-  value,
-  onChange,
-  placeholder,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  return (
-    <input
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-dark-gray outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-gray-300"
-    />
-  );
-}
-
-type SelectOption = string | { value: string; label: string };
-
-function SelectInput({
-  value,
-  onChange,
-  options,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  options: SelectOption[];
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-dark-gray outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-    >
-      <option value="">— Select —</option>
-      {options.map((o) => {
-        const val = typeof o === "string" ? o : o.value;
-        const lbl = typeof o === "string" ? o : o.label;
-        return (
-          <option key={val} value={val}>
-            {lbl}
-          </option>
-        );
-      })}
-    </select>
-  );
+function formatFileSize(bytes: number): string {
+  if (bytes >= 1_000_000) return `${(bytes / 1_000_000).toFixed(1)} MB`;
+  return `${Math.round(bytes / 1024)} KB`;
 }
 
 export function NewBooking() {
-  const [form, setForm] = useState<FormState>(EMPTY);
-  const [submitted, setSubmitted] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [attachments, setAttachments] = useState<File[]>([]);
-  const { getPortfolioNames } = usePortfolioRegistry();
-  const { logAction, hasPermission } = useGovernance();
   const { persona } = usePersona();
-  const PORTFOLIOS = getPortfolioNames();
+  const navigate = useNavigate();
+  const { portfolios } = usePortfolioRegistry();
+  const wf = useWorkflow();
+  const { dealSlips, register } = wf;
+  const canCreate = canDo(persona.role, "dealSlip", "C");
 
-  const canCreate = hasPermission(persona.role, "deal.create");
+  const allowedIds = authorisedPortfolioIds(persona.role);
+  const authorisedPortfolios = useMemo(
+    () =>
+      allowedIds
+        ? portfolios.filter((p) => allowedIds.includes(p.id) && p.status === "Active")
+        : portfolios.filter((p) => p.status === "Active"),
+    [portfolios, allowedIds],
+  );
 
-  const set = (field: keyof FormState) => (v: string) =>
-    setForm((f) => ({ ...f, [field]: v }));
+  const [assetClass, setAssetClass] = useState<AssetClass>(ASSET_CLASSES[0]);
+  const [transactionType, setTransactionType] = useState(
+    TRANSACTION_TYPES[ASSET_CLASSES[0]][0],
+  );
+  const [portfolioId, setPortfolioId] = useState(authorisedPortfolios[0]?.id ?? "");
+  const [fields, setFields] = useState(() => emptyFieldsForAssetClass(ASSET_CLASSES[0]));
+  const [uploads, setUploads] = useState<Record<string, UploadedDoc[]>>({});
+  const [settlementTouched, setSettlementTouched] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [createdSlipId, setCreatedSlipId] = useState<string | null>(null);
 
-  // Auto-compute EIR approximation
-  const eirApprox = form.purchaseYield
-    ? parseFloat(form.purchaseYield)
-    : form.couponRate
-      ? parseFloat(form.couponRate)
-      : null;
+  const portfolio = authorisedPortfolios.find((p) => p.id === portfolioId);
+  const transactionSubType =
+    fields.transactionSubType || transactionType;
+  const economicsDefs = getEconomicsFields(assetClass, transactionSubType);
+  const documentSlots = getDocumentSlots(assetClass, transactionSubType);
 
-  // Investment limit check: single-issuer concentration
-  const limitWarning = useMemo(() => {
-    if (!form.issuer || !form.faceValue) return null;
-    const fv = parseFloat(form.faceValue);
-    if (isNaN(fv) || fv <= 0) return null;
-    const totalBSV = BOOK_COMPUTED.totals.totalBSValueNGN;
-    const proposedPct = (fv / (totalBSV + fv)) * 100;
-    if (proposedPct > 10) {
-      return `Single-issuer concentration would reach ${proposedPct.toFixed(1)}% (NAICOM limit: 10%)`;
+  const derivedFields = useMemo(() => {
+    let next = applyDerivedFields(assetClass, fields);
+    if (assetClass === "Equities" && fields.tradeDate && !settlementTouched) {
+      next = { ...next, settlementDate: addDays(fields.tradeDate, 2) };
     }
-    if (proposedPct > 8) {
-      return `Single-issuer concentration approaching limit: ${proposedPct.toFixed(1)}% (limit: 10%)`;
+    const bank = resolveBankAccount(next.settlementAccountId);
+    if (bank) {
+      next.settlementAccount = bank.label;
+      if (!next.currency) next.currency = bank.currency;
     }
-    return null;
-  }, [form.issuer, form.faceValue]);
+    const cpBank = resolveCounterpartyBank(next.counterpartyBank);
+    if (cpBank) {
+      next.beneficiaryAccountNumber = cpBank.accountNumber;
+      next.beneficiaryAccountName = cpBank.accountName;
+      next.sortCodeOrSwift = `${cpBank.sortCode} / ${cpBank.swift}`;
+    }
+    if (next.currency && !next.settlementCurrency) {
+      next.settlementCurrency = next.currency;
+    }
+    return next;
+  }, [assetClass, fields, settlementTouched]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!canCreate) return;
-    setSubmitting(true);
-    const ref = `DL-${Date.now().toString().slice(-6)}`;
-    logAction({
-      user: persona.name,
-      role: persona.role,
-      module: "Deals",
-      action: "New Booking Submitted",
-      detail: `${form.instrumentName || form.instrumentType} — ₦${form.faceValue || "0"} face value submitted for checker approval. Ref: ${ref}`,
-      status: limitWarning ? "warning" : "success",
-      ip: "10.0.1.xx",
+  const limitRows = useMemo(
+    () =>
+      buildLimitPreview(
+        assetClass,
+        portfolioId,
+        portfolio?.name ?? "",
+        derivedFields,
+        dealSlips,
+        register,
+      ),
+    [assetClass, portfolioId, portfolio?.name, derivedFields, dealSlips, register],
+  );
+
+  const alerts = useMemo(() => limitAlerts(limitRows), [limitRows]);
+  const notional = dealNotional(derivedFields);
+
+  useEffect(() => {
+    if (!authorisedPortfolios.some((p) => p.id === portfolioId)) {
+      setPortfolioId(authorisedPortfolios[0]?.id ?? "");
+    }
+  }, [authorisedPortfolios, portfolioId]);
+
+  const onAssetClassChange = (ac: AssetClass) => {
+    setAssetClass(ac);
+    const tx = TRANSACTION_TYPES[ac][0];
+    setTransactionType(tx);
+    const subType =
+      ac === "Alternative investments" || ac === "Mutual funds" ? tx : "";
+    setFields({
+      ...emptyFieldsForAssetClass(ac),
+      transactionType: tx,
+      transactionSubType: subType,
     });
-    setTimeout(() => {
-      setSubmitting(false);
-      setSubmitted(true);
-    }, 1200);
+    setUploads({});
+    setSettlementTouched(false);
   };
 
-  if (submitted) {
+  const setField = (key: string) => (value: string) => {
+    if (key === "settlementDate") setSettlementTouched(true);
+    setFields((f) => ({ ...f, [key]: value }));
+  };
+
+  const addFiles = (slotId: string, files: FileList | null, multiple: boolean) => {
+    if (!files?.length) return;
+    const valid: UploadedDoc[] = [];
+    for (const file of Array.from(files)) {
+      if (file.size > MAX_FILE_BYTES) {
+        toaster.error({
+          title: "File too large",
+          description: `${file.name} exceeds 10 MB limit.`,
+        });
+        continue;
+      }
+      valid.push({ file, uploadedAt: new Date().toISOString() });
+    }
+    if (!valid.length) return;
+    setUploads((prev) => ({
+      ...prev,
+      [slotId]: multiple ? [...(prev[slotId] ?? []), ...valid] : valid,
+    }));
+  };
+
+  const removeFile = (slotId: string, index: number) => {
+    setUploads((prev) => ({
+      ...prev,
+      [slotId]: (prev[slotId] ?? []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const collectValidationErrors = (): string[] => {
+    const errors: string[] = [];
+    const missing = validateMandatoryFields(assetClass, derivedFields, transactionSubType);
+    if (missing.length) errors.push(...missing);
+
+    const docMissing = validateDocuments(
+        assetClass,
+        Object.fromEntries(
+          Object.entries(uploads).map(([k, v]) => [k, v.map((u) => u.file)]),
+        ),
+        transactionSubType,
+    );
+    errors.push(...docMissing);
+
+    if (derivedFields.isin && !isValidIsin(derivedFields.isin)) {
+      errors.push("ISIN format");
+    }
+    if (
+      assetClass === "Fixed deposits and call deposits" &&
+      derivedFields.tradeDate &&
+      derivedFields.valueDate &&
+      !isValueDateValid(derivedFields.tradeDate, derivedFields.valueDate)
+    ) {
+      errors.push("Value date must be on or after trade date");
+    }
+    if (derivedFields.paymentNarrative && derivedFields.paymentNarrative.length > 140) {
+      errors.push("Payment narrative (max 140 characters)");
+    }
+
+    return errors;
+  };
+
+  const handleSubmitRequest = () => {
+    const errors = collectValidationErrors();
+    if (errors.length) {
+      toaster.error({
+        title: "Submission failed",
+        description: `Please correct ${errors.length} field(s): ${errors.slice(0, 4).join(", ")}${errors.length > 4 ? "…" : ""}.`,
+      });
+      return;
+    }
+    setConfirmOpen(true);
+  };
+
+  const submitDeal = () => {
+    if (!canCreate) return;
+
+    setSubmitting(true);
+    const allDocs = Object.values(uploads)
+      .flat()
+      .map((u) => ({ name: u.file.name }));
+
+    const payload = {
+      ...derivedFields,
+      transactionType,
+    };
+
+    const created = wf.createDealSlip({
+      assetClass,
+      portfolioId,
+      portfolioName: portfolio?.name ?? portfolioId,
+      fields: payload,
+      user: persona.name,
+      role: persona.role,
+      documents: allDocs,
+    });
+
+    if (!created.ok) {
+      toaster.error({ title: "Submission failed", description: created.error });
+      setSubmitting(false);
+      return;
+    }
+
+    const sub = wf.submitDealSlip(created.id, persona.name, persona.role);
+    if (!sub.ok) {
+      toaster.error({ title: "Submission failed", description: sub.error ?? "Unknown error" });
+      setSubmitting(false);
+      setCreatedSlipId(created.id);
+      return;
+    }
+
+    toaster.success({
+      title: "Deal submitted for review",
+      description: `Reference ${created.id}. You will be notified when reviewed.`,
+    });
+
+    setSubmitting(false);
+    setConfirmOpen(false);
+    setCreatedSlipId(created.id);
+  };
+
+  const resetForm = () => {
+    const tx = TRANSACTION_TYPES[assetClass][0];
+    const subType =
+      assetClass === "Alternative investments" || assetClass === "Mutual funds" ? tx : "";
+    setFields({
+      ...emptyFieldsForAssetClass(assetClass),
+      transactionType: tx,
+      transactionSubType: subType,
+    });
+    setTransactionType(tx);
+    setUploads({});
+    setSettlementTouched(false);
+  };
+
+  const dashboardPath = canDo(persona.role, "blotter", "C")
+    ? "/trader/dashboard"
+    : "/deal-capture/blotter";
+
+  if (!canCreate) {
     return (
-      <div className="p-3 sm:p-4 md:p-6 xl:p-8">
-        <div className="rounded-xl border border-border bg-surface p-10 flex flex-col items-center gap-4 shadow-sm">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-            <Save className="h-7 w-7 text-success" />
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-bold text-dark-gray">
-              Deal Submitted for Approval
-            </p>
-            <p className="mt-1 text-sm text-gray-400">
-              {form.instrumentName || "New instrument"} has been submitted to
-              the maker-checker queue. Reference:{" "}
-              <span className="font-mono font-semibold">
-                DL-{Date.now().toString().slice(-6)}
-              </span>
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              setForm(EMPTY);
-              setSubmitted(false);
-            }}
-            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm text-gray-500 hover:bg-pale-red hover:text-primary"
-          >
-            <RotateCcw className="h-4 w-4" /> Book another deal
-          </button>
-        </div>
+      <div className="rounded-xl border border-border bg-surface p-8 text-center">
+        <p className="text-sm text-dark-gray/55">
+          Your role ({persona.role}) cannot capture deals.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 xl:p-8">
-      <GovernanceBar
-        requiredPermission="deal.create"
-        context="maker"
-        contextNote="Submit booking → awaits CFO checker approval"
-        showPendingApprovals
-      />
+    <div className="mx-auto my-6 max-w-4xl px-4 pb-28 sm:px-0">
+      <nav className="flex items-center gap-1.5 text-xs text-dark-gray/45">
+        <Link to={dashboardPath} className="hover:text-primary">
+          Dashboard
+        </Link>
+        <ChevronRight className="h-3 w-3" />
+        <span className="font-medium text-dark-gray">Deal Capture</span>
+      </nav>
 
-      {/* Limit warning banner */}
-      {limitWarning && (
-        <div className="mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-          <span>{limitWarning}</span>
-        </div>
-      )}
-
-      <div className="mb-6">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-          Deal Capture
-        </p>
-        <h1 className="mt-1 text-2xl font-bold text-dark-gray">
-          New Investment Booking
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Capture instrument economics, counterparty and settlement details
+      <div className="mt-6">
+        <h1 className="text-xl font-bold text-dark-gray">Deal Capture</h1>
+        <p className="mt-1 text-sm text-dark-gray/55">
+          Enter trade economics and terms. Submitting generates a deal slip for review and
+          workflow tracking.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Section: Instrument Details */}
-        <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold text-dark-gray">
-            Instrument Details
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div>
-              <FieldLabel>Instrument Type *</FieldLabel>
-              <SelectInput
-                value={form.instrumentType}
-                onChange={set("instrumentType")}
-                options={INST_TYPES}
-              />
-            </div>
-            <div>
-              <FieldLabel tip="International Securities Identification Number">
-                ISIN
-              </FieldLabel>
-              <TextInput
-                value={form.isin}
-                onChange={set("isin")}
-                placeholder="e.g. NGFGN00001234"
-              />
-            </div>
-            <div>
-              <FieldLabel>Instrument Name *</FieldLabel>
-              <TextInput
-                value={form.instrumentName}
-                onChange={set("instrumentName")}
-                placeholder="e.g. FGN Bond 2031"
-              />
-            </div>
-            <div>
-              <FieldLabel>Issuer *</FieldLabel>
-              <TextInput
-                value={form.issuer}
-                onChange={set("issuer")}
-                placeholder="e.g. Federal Government of Nigeria"
-              />
-            </div>
-            <div>
-              <FieldLabel>Sector</FieldLabel>
-              <SelectInput
-                value={form.sector}
-                onChange={set("sector")}
-                options={SECTORS}
-              />
-            </div>
-            <div>
-              <FieldLabel>Portfolio</FieldLabel>
-              <SelectInput
-                value={form.portfolio}
-                onChange={set("portfolio")}
-                options={PORTFOLIOS}
-              />
-            </div>
-          </div>
+      {notional > 0 && alerts.length > 0 && (
+        <div className="mt-4">
+          <LimitAlertsBanner alerts={alerts} />
         </div>
+      )}
 
-        {/* Section: IFRS 9 Classification */}
+      <form
+        id="deal-capture-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmitRequest();
+        }}
+        className="mt-6 space-y-5"
+      >
+        {/* Classification */}
         <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold text-dark-gray">
-            IFRS 9 Classification
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div>
-              <FieldLabel>Classification *</FieldLabel>
-              <SelectInput
-                value={form.classification}
-                onChange={set("classification")}
-                options={CLASSIFICATIONS}
-              />
-            </div>
-            <div>
-              <FieldLabel>IFRS 13 Fair Value Level</FieldLabel>
-              <SelectInput
-                value={form.ifrs13Level}
-                onChange={set("ifrs13Level")}
-                options={IFRS13_LEVELS}
-              />
-            </div>
-            <div>
-              <FieldLabel>Currency *</FieldLabel>
-              <SelectInput
-                value={form.currency}
-                onChange={set("currency")}
-                options={CURRENCIES}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Section: Economics */}
-        <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold text-dark-gray">
-            Deal Economics
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div>
-              <FieldLabel tip="Nominal / par value in instrument currency">
-                Face Value *
-              </FieldLabel>
-              <TextInput
-                value={form.faceValue}
-                onChange={set("faceValue")}
-                placeholder="e.g. 100000000"
-              />
-            </div>
-            <div>
-              <FieldLabel tip="As decimal, e.g. 0.98 for 98%">
-                Purchase Price (decimal)
-              </FieldLabel>
-              <TextInput
-                value={form.purchasePrice}
-                onChange={set("purchasePrice")}
-                placeholder="e.g. 0.9850"
-              />
-            </div>
-            <div>
-              <FieldLabel tip="Annual yield to maturity at purchase">
-                Purchase Yield (%)
-              </FieldLabel>
-              <TextInput
-                value={form.purchaseYield}
-                onChange={set("purchaseYield")}
-                placeholder="e.g. 0.185 for 18.5%"
-              />
-            </div>
-            <div>
-              <FieldLabel>Coupon Rate (annual, decimal)</FieldLabel>
-              <TextInput
-                value={form.couponRate}
-                onChange={set("couponRate")}
-                placeholder="e.g. 0.1500 for 15%"
-              />
-            </div>
-            <div>
-              <FieldLabel>Coupon Frequency</FieldLabel>
-              <SelectInput
-                value={form.couponFrequency}
-                onChange={set("couponFrequency")}
-                options={FREQ_OPTIONS}
-              />
-            </div>
-            <div>
-              <FieldLabel>Day Count Convention</FieldLabel>
-              <SelectInput
-                value={form.dayCount}
-                onChange={set("dayCount")}
-                options={DAY_COUNTS}
-              />
-            </div>
-            <div>
-              <FieldLabel tip="Discount rate used for DCF valuation (e.g. 0.185 for 18.5%). Defaults to purchase yield if blank.">
-                Discount Rate (%)
-              </FieldLabel>
-              <TextInput
-                value={form.discountRate}
-                onChange={set("discountRate")}
-                placeholder="e.g. 0.185 for 18.5%"
-              />
-            </div>
-          </div>
-          {eirApprox !== null && (
-            <div className="mt-4 rounded-lg bg-pale-red/40 border border-primary/20 px-4 py-3">
-              <p className="text-xs text-primary">
-                <span className="font-semibold">Estimated EIR:</span>{" "}
-                {(eirApprox * 100).toFixed(4)}% — precise EIR will be computed
-                on deal booking.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Section: Dates */}
-        <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold text-dark-gray">Dates</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div>
-              <FieldLabel>Trade / Purchase Date *</FieldLabel>
-              <TextInput
-                value={form.purchaseDate}
-                onChange={set("purchaseDate")}
-                placeholder="YYYY-MM-DD"
-              />
-            </div>
-            <div>
-              <FieldLabel>Settlement Date</FieldLabel>
-              <TextInput
-                value={form.settlementDate}
-                onChange={set("settlementDate")}
-                placeholder="YYYY-MM-DD"
-              />
-            </div>
-            <div>
-              <FieldLabel>Maturity Date</FieldLabel>
-              <TextInput
-                value={form.maturityDate}
-                onChange={set("maturityDate")}
-                placeholder="YYYY-MM-DD"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Section: Counterparty */}
-        <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold text-dark-gray">
-            Counterparty &amp; Custody
-          </h2>
+          <h2 className="mb-4 text-sm font-semibold">Classification</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <FieldLabel>Custodian</FieldLabel>
-              <TextInput
-                value={form.custodian}
-                onChange={set("custodian")}
-                placeholder="e.g. First Bank Custodial"
-              />
-            </div>
-            <div>
-              <FieldLabel>Counterparty</FieldLabel>
-              <TextInput
-                value={form.counterparty}
-                onChange={set("counterparty")}
-                placeholder="e.g. Stanbic IBTC Securities"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Section: Documents */}
-        <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold text-dark-gray">
-            Document Attachments
-          </h2>
-          <div className="space-y-3">
-            <label className="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-dashed border-border bg-gray-50 px-4 py-3 hover:border-primary hover:bg-pale-red/20 transition-colors">
-              <Paperclip className="h-4 w-4 text-gray-400" />
-              <span className="text-sm text-gray-400">
-                Attach term sheet, IC memo, or supporting documents…
-              </span>
-              <input
-                type="file"
-                multiple
-                className="hidden"
-                accept=".pdf,.doc,.docx,.xlsx,.csv"
-                onChange={(e) => {
-                  const files = Array.from(e.target.files ?? []);
-                  setAttachments((prev) => [...prev, ...files]);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-            {attachments.length > 0 && (
-              <ul className="space-y-1.5">
-                {attachments.map((f, i) => (
-                  <li
-                    key={i}
-                    className="flex items-center justify-between rounded-lg border border-border bg-white px-3 py-2 text-sm"
-                  >
-                    <div className="flex items-center gap-2 text-dark-gray">
-                      <Paperclip className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="font-medium">{f.name}</span>
-                      <span className="text-xs text-gray-400">
-                        ({(f.size / 1024).toFixed(1)} KB)
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setAttachments((prev) => prev.filter((_, j) => j !== i))
-                      }
-                      className="text-gray-400 hover:text-danger"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </li>
+            <label className="block text-xs font-medium text-dark-gray/60">
+              Asset class *
+              <select
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+                value={assetClass}
+                onChange={(e) => onAssetClassChange(e.target.value as AssetClass)}
+              >
+                {ASSET_CLASSES.map((ac) => (
+                  <option key={ac} value={ac}>
+                    {ac}
+                  </option>
                 ))}
-              </ul>
-            )}
+              </select>
+            </label>
+            <label className="block text-xs font-medium text-dark-gray/60">
+              Transaction type *
+              <select
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+                value={transactionType}
+                onChange={(e) => {
+                  const tx = e.target.value;
+                  setTransactionType(tx);
+                  setField("transactionType")(tx);
+                  if (
+                    assetClass === "Alternative investments" ||
+                    assetClass === "Mutual funds"
+                  ) {
+                    setField("transactionSubType")(tx);
+                  }
+                }}
+              >
+                {TRANSACTION_TYPES[assetClass].map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="col-span-full block text-xs font-medium text-dark-gray/60 sm:col-span-1">
+              Portfolio / fund *
+              <select
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+                value={portfolioId}
+                onChange={(e) => setPortfolioId(e.target.value)}
+              >
+                {authorisedPortfolios.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
         </div>
 
-        {/* Section: Notes */}
+        {/* Economics */}
         <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold text-dark-gray">
-            Notes / Rationale
-          </h2>
-          <textarea
-            value={form.notes}
-            onChange={(e) => set("notes")(e.target.value)}
-            rows={3}
-            placeholder="Investment rationale, IC approval reference, or other notes..."
-            className="block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-dark-gray outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-gray-300 resize-none"
-          />
+          <h2 className="mb-1 text-sm font-semibold">Economics &amp; terms</h2>
+          <p className="mb-4 text-xs text-dark-gray/45">
+            {economicsDefs.filter((d) => !d.readOnly).length} fields for {assetClass}
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {economicsDefs.map((def) => (
+              <label
+                key={def.key}
+                className={`block text-xs font-medium text-dark-gray/60 ${
+                  def.type === "textarea" ? "sm:col-span-2" : ""
+                }`}
+              >
+                {def.label} {!def.readOnly && "*"}
+                <div className="mt-1">
+                  <CaptureFieldInput
+                    def={def}
+                    value={derivedFields[def.key] ?? ""}
+                    onChange={def.readOnly ? () => {} : setField(def.key)}
+                  />
+                </div>
+              </label>
+            ))}
+          </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center justify-end gap-3">
+        {/* Settlement details */}
+        <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+          <h2 className="mb-4 text-sm font-semibold">Counterparty &amp; settlement details</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {SETTLEMENT_FIELDS.map((def) => (
+              <label
+                key={def.key}
+                className={`block text-xs font-medium text-dark-gray/60 ${
+                  def.key === "paymentNarrative" ? "sm:col-span-2" : ""
+                }`}
+              >
+                {def.label} {!def.readOnly && "*"}
+                <div className="mt-1">
+                  <CaptureFieldInput
+                    def={def}
+                    value={derivedFields[def.key] ?? ""}
+                    onChange={def.readOnly ? () => {} : setField(def.key)}
+                  />
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Documents */}
+        <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+          <h2 className="mb-4 text-sm font-semibold">Documents</h2>
+          <div className="space-y-4">
+            {documentSlots.map((slot) => (
+              <div key={slot.id}>
+                <label className="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-dashed border-border px-4 py-3 hover:border-primary">
+                  <Paperclip className="h-4 w-4 shrink-0 text-gray-400" />
+                  <span className="text-sm text-gray-500">
+                    {slot.label}
+                    {slot.required ? " *" : " (optional)"}
+                    <span className="ml-1 text-[10px] text-dark-gray/35">PDF, JPG, PNG · max 10 MB</span>
+                  </span>
+                  <input
+                    type="file"
+                    multiple={slot.multiple}
+                    accept={slot.accept}
+                    className="hidden"
+                    onChange={(e) => addFiles(slot.id, e.target.files, !!slot.multiple)}
+                  />
+                </label>
+                {(uploads[slot.id] ?? []).map((doc, i) => (
+                  <div
+                    key={`${slot.id}-${i}`}
+                    className="mt-2 flex items-center justify-between rounded-md bg-gray-50 px-3 py-2 text-sm"
+                  >
+                    <div>
+                      <p className="font-medium text-dark-gray">{doc.file.name}</p>
+                      <p className="text-[10px] text-dark-gray/40">
+                        {formatFileSize(doc.file.size)} ·{" "}
+                        {new Date(doc.uploadedAt).toLocaleString()}
+                      </p>
+                    </div>
+                    <button type="button" onClick={() => removeFile(slot.id, i)}>
+                      <X className="h-4 w-4 text-dark-gray/40 hover:text-danger" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </form>
+
+      <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-white/95 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] backdrop-blur-sm md:left-56">
+        <div className="mx-auto flex max-w-4xl justify-end gap-3 px-4 py-3 sm:px-6">
           <button
             type="button"
-            onClick={() => setForm(EMPTY)}
-            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm text-gray-500 hover:bg-pale-red hover:text-primary"
+            onClick={resetForm}
+            className="flex items-center gap-2 rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-dark-gray hover:bg-gray-50"
           >
             <RotateCcw className="h-4 w-4" /> Reset
           </button>
           <button
             type="submit"
-            disabled={submitting || !canCreate}
-            title={
-              !canCreate
-                ? `${persona.role} does not have deal.create permission`
-                : undefined
-            }
-            className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            form="deal-capture-form"
+            disabled={submitting}
+            className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
-            {submitting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Booking…
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" /> Book Deal
-              </>
-            )}
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            Submit for review
           </button>
         </div>
-      </form>
+      </div>
+
+      <Modal
+        isOpen={confirmOpen}
+        onClose={() => !submitting && setConfirmOpen(false)}
+        title="Submit for review?"
+        size="md"
+        footer={
+          <>
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => setConfirmOpen(false)}
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-dark-gray hover:bg-gray-50 disabled:opacity-50"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={submitDeal}
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              {submitting ? "Submitting…" : "Confirm submit"}
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-dark-gray/60">
+            The deal slip will be locked and routed for Middle Office and Compliance review.
+          </p>
+          <div className="grid grid-cols-2 gap-3 rounded-lg border border-border bg-[#FAFBFC] p-3 text-sm">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-dark-gray/40">
+                Portfolio
+              </p>
+              <p className="mt-0.5 font-medium text-dark-gray">{portfolio?.name ?? "—"}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-dark-gray/40">
+                Notional
+              </p>
+              <p className="mt-0.5 font-medium tabular-nums text-dark-gray">
+                {notional > 0 ? fmtMoney(notional) : "—"}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-dark-gray/40">
+                Asset class
+              </p>
+              <p className="mt-0.5 font-medium text-dark-gray">{assetClass}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-dark-gray/40">
+                Transaction
+              </p>
+              <p className="mt-0.5 font-medium text-dark-gray">{transactionType}</p>
+            </div>
+          </div>
+          <LimitAlertsPanel alerts={alerts} />
+        </div>
+      </Modal>
+
+      {createdSlipId && (
+        <DealSlipWorkspace
+          dealId={createdSlipId}
+          onClose={() => navigate("/deal-capture/blotter")}
+        />
+      )}
     </div>
   );
 }

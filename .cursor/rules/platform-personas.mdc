@@ -1,0 +1,140 @@
+---
+description: Canonical platform personas — objectives, required features, workflow tier, and feature access matrix
+alwaysApply: true
+---
+
+# Lead Quanta Personas
+
+These are the **canonical personas** for the platform. Build shared services; expose persona-specific dashboards, fields, rights, and workflow paths — not separate systems per desk.
+
+When adding features, screens, or permissions, map them to the persona(s) below and their required feature set.
+
+## Front office (deal creators)
+
+| Persona | Primary objective | Required feature set |
+|---------|-------------------|----------------------|
+| **Money Market Trader** | Book and manage fixed deposits, call deposits, treasury bills and commercial papers | Trade blotter, deal slip, maturity tracker, counterparty limit, interest projection, rollover queue |
+| **Fixed Income Trader** | Book and manage bonds, treasury bills, commercial papers and secondary market disposals | Deal slip, coupon calendar, clean price, dirty price, accrued interest, yield, duration, DV01, valuation |
+| **Equity Trader** | Book and monitor listed equities and equity funds | Deal slip, broker details, quantity, price, fees, sector exposure, gain or loss, valuation |
+| **Alternative Investment Officer** | Manage unlisted funds, private equity, real estate, infrastructure and other approved alternatives | Subscription, capital call, distribution, commitment tracking, manual valuation, document repository |
+
+## Portfolio management
+
+| Persona | Primary objective | Required feature set |
+|---------|-------------------|----------------------|
+| **Portfolio Manager** | Control portfolio allocation, return, liquidity and reinvestment decisions | Portfolio dashboard, deal slip review, allocation impact, income forecast, maturity ladder, rebalancing view |
+| **Head of Investments** | Own investment strategy, governance, performance and exceptions | Executive dashboard, approval queue, exceptions, breaches, portfolio performance, ALCO pack |
+
+## Control and risk
+
+| Persona | Primary objective | Required feature set |
+|---------|-------------------|----------------------|
+| **Middle Office / Investment Control** | Independently validate trade quality, pricing, limits and compliance before settlement | Deal slip control review, limit checks, pricing check, exception routing, breach tracker |
+| **Risk Management** | Monitor concentration, credit, market, liquidity and reinvestment risk | Risk analytics, ratings, stress view, concentration dashboard, duration, DV01, liquidity gaps |
+| **Compliance** | Confirm regulatory and investment policy compliance | Rules engine, eligible instruments, regulatory limits, policy exceptions, waiver register |
+
+## Operations and finance
+
+| Persona | Primary objective | Required feature set |
+|---------|-------------------|----------------------|
+| **Back Office / Investment Operations** | Raise settlement instructions, confirm settlement and manage transaction status | Settlement queue, document matching, cash movement validation, maturity processing, settlement evidence |
+| **Finance / Fund Accounting** | Recognise income, validate accounting treatment, post journals and reconcile to GL | Accrual engine, accounting classification, journal generation, valuation entries, GL export, reconciliation |
+| **Treasury Cash Management** | Monitor cash availability, expected inflows, outflows and reinvestment liquidity | Cash flow calendar, liquidity ladder, placement forecast, coupon forecast, settlement cash view |
+
+## Governance and administration
+
+| Persona | Primary objective | Required feature set |
+|---------|-------------------|----------------------|
+| **Investment Committee / ALCO** | Provide oversight; approve major deals, policy exceptions and limit overrides | ALCO dashboard, exception approvals, performance reports, liquidity, limits and compliance packs |
+| **Internal Audit** | Independently review control effectiveness and evidence trail | Audit trail, workflow logs, deal slip history, settlement evidence, exception history, user access logs |
+| **System Administrator** | Maintain configuration, roles, static data and workflow rules | User roles, workflow configuration, counterparty master, issuer master, limit setup, asset class setup |
+
+## Workflow tier (segregation of duties)
+
+When implementing permissions and workflow routing, align personas to these tiers:
+
+- **Maker (creates)**: Money Market Trader, Fixed Income Trader, Equity Trader, Alternative Investment Officer
+- **Checker (reviews)**: Middle Office / Investment Control, Risk Management, Compliance
+- **Approver**: Portfolio Manager, Head of Investments, Investment Committee / ALCO
+- **Settle / post**: Back Office / Investment Operations (settlement), Finance / Fund Accounting (accounting)
+- **Oversight (read-heavy)**: Treasury Cash Management, Internal Audit
+- **Admin (config)**: System Administrator
+
+## Feature access matrix
+
+Canonical permissions per persona and platform capability. Blank = no access.
+
+### Action codes
+
+| Code | Meaning |
+|------|---------|
+| **C** | Create |
+| **R** | Review |
+| **A** | Approve |
+| **S** | Settle or confirm |
+| **P** | Post accounting |
+| **M** | Maintain configuration |
+| **V** | View only |
+
+### Capabilities (columns)
+
+Blotter · Deal Slip · Checks · Approval · Settle · Register · Accrual · Valuation · Limits · Acct GL · Reports · Audit Admin
+
+### Permissions by persona
+
+| Persona | Blotter | Deal Slip | Checks | Approval | Settle | Register | Accrual | Valuation | Limits | Acct GL | Reports | Audit Admin |
+|---------|---------|-----------|--------|----------|--------|----------|---------|-----------|--------|---------|---------|-------------|
+| Money Market Trader | C | C | V | | | V | V | | V | | V | |
+| Fixed Income Trader | C | C | V | | | V | V | V | V | | V | |
+| Equity Trader | C | C | V | | | V | | V | V | | V | |
+| Alternative Investment Officer | C | C | V | | | V | | V | V | | V | |
+| Portfolio Manager | V | R | | A | | V | V | V | V | | V | |
+| Head of Investments | V | R | V | A | | V | V | V | V | | V | |
+| Middle Office | V | R | R | | | V | V | R | R | | V | |
+| Risk Management | V | R | R | | | V | | R | R | | V | |
+| Compliance | V | R | R | | | V | | | R | | V | |
+| Back Office | V | R | | | S | S | | | | | V | |
+| Finance | V | R | | | | V | R | R | | P | V | |
+| Treasury Cash Management | V | | | | | V | | | | | V | |
+| Investment Committee / ALCO | V | R | V | A | | V | V | V | V | | V | |
+| Internal Audit | V | V | V | V | V | V | V | V | V | V | V | V |
+| System Administrator | | | | | | | | | | | | M |
+
+### Enforcement rules
+
+When gating UI actions or API endpoints, enforce the matrix above — not ad hoc role checks:
+
+- Only front-office traders **create** blotter entries and deal slips.
+- Only Middle Office, Risk, and Compliance **review** checks (and related valuation/limits where marked R).
+- Only Portfolio Manager, Head of Investments, and ALCO **approve** deals.
+- Only Back Office **settles** and confirms register updates (S on Settle and Register).
+- Only Finance **posts** to Acct GL (P).
+- Only System Administrator **maintains** Audit Admin configuration (M).
+- Internal Audit is **view-only (V)** across all capabilities — never grant write paths.
+- Do not grant Settle, Approve, or Post to front-office personas.
+
+## Persona journeys
+
+Primary workflow path per persona. Hard constraints must be enforced in UI and backend.
+
+| Persona | Primary journey |
+|---------|-----------------|
+| **Money Market Trader** | View maturities and available limits. Create placement or CP deal slip. Capture rate, tenor, counterparty, value date, maturity date. Upload quote or term sheet. Submit for checks and approval. Monitor status until settled or returned. **Cannot confirm settlement.** |
+| **Fixed Income Trader** | View bond inventory, yield curve, coupon dates, issuer limits. Create buy, sell, or partial disposal deal slip. Capture price, yield, clean/dirty price, accrued interest, settlement value. Submit for validation. Track approval and settlement. |
+| **Equity Trader** | Create buy or sell deal slip with ticker, quantity, price, broker, fees, trade date, settlement date. Upload broker note. Track approval, settlement, and valuation impact. **Cannot edit after submission unless returned.** |
+| **Alternative Investment Officer** | Create subscription, capital call, distribution, or redemption request. Attach investment memo, legal documents, NAV statement, or capital call notice. Route through enhanced approval where required. Track commitment, drawdown, and distribution status. |
+| **Portfolio Manager** | Review pending deal slips; assess allocation, liquidity, return, and policy fit. Approve within mandate or return for amendment. Escalate larger or exceptional items to Head of Investments or ALCO. |
+| **Head of Investments** | Review executive approval queue, breaches, concentration, portfolio impact. Approve strategic trades and exceptions within mandate. Escalate committee-level items. Review performance and unresolved exceptions. |
+| **Middle Office** | Review submitted deal slips for completeness, pricing reasonableness, limit utilisation, policy flags. Clear, reject, query, or escalate. **Cannot raise settlement instructions.** |
+| **Risk Management** | Review exposures, ratings, duration, DV01, concentration, liquidity, stress impact for selected deal slips or exceptions. Record risk comments and escalate material concerns. |
+| **Compliance** | Review deal slips against regulatory limits, eligible instruments, rating thresholds, tenor limits, internal policy. Clear compliant deals or route breaches for waiver approval. |
+| **Back Office** | Receive approved deal slips in settlement queue. Generate settlement instructions. Validate beneficiary, account, custodian, broker, value date, currency, amount. Confirm cash movement and documents. Mark settled, failed, or settled with exception. |
+| **Finance** | Use settled deal data for accounting classification, accrual setup, income recognition, fair value entries, disposal entries, GL reconciliation. **Does not approve investment execution.** |
+| **Treasury Cash Management** | Monitor cash availability, expected inflows/outflows, settlement cash impact, and reinvestment liquidity via register and reports (view-only on deal workflow). |
+| **Investment Committee / ALCO** | Review deal slips and exceptions requiring committee approval. Approve major deals, policy exceptions, and limit overrides. Review performance, liquidity, limits, and compliance packs. |
+| **Internal Audit** | Independently review audit trail, workflow logs, deal slip history, settlement evidence, exception history, and user access logs (view-only). |
+| **System Administrator** | Maintain user roles, workflow configuration, counterparty/issuer masters, limit setup, and asset class setup via Audit Admin. |
+
+## Implementation note
+
+Current demo login roles in `login.tsx` and `permissions.ts` are placeholders. Align RBAC, navigation, action gates, and feature flags to these canonical persona names, feature sets, and the access matrix above as the platform matures.

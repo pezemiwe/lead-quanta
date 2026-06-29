@@ -54,7 +54,6 @@ const BLANK: Omit<Instrument, "id"> = {
   couponRate: 0,
   couponFrequency: "Semi",
   status: "Active",
-  impairmentStage: "Stage 1",
 };
 
 function loadCustom(): Instrument[] {
@@ -103,7 +102,7 @@ function instrumentToRow(inst: Instrument): HoldingRow {
     eirPct: v?.eir ?? 0,
     couponRate: inst.couponRate,
     maturityDate: inst.maturityDate ?? null,
-    stage: inst.impairmentStage ?? "N/A",
+    stage: inst.classification,
     status: inst.status as string,
   } as HoldingRow;
 }
@@ -617,24 +616,6 @@ export function PortfolioHoldings() {
                   <option>L1</option>
                   <option>L2</option>
                   <option>L3</option>
-                </select>
-              </Field>
-              <Field label="Impairment Stage">
-                <select
-                  className={sel}
-                  value={form.impairmentStage ?? "Stage 1"}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      impairmentStage: e.target
-                        .value as Instrument["impairmentStage"],
-                    }))
-                  }
-                >
-                  <option>Stage 1</option>
-                  <option>Stage 2</option>
-                  <option>Stage 3</option>
-                  <option>N/A</option>
                 </select>
               </Field>
             </div>

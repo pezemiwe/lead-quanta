@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+﻿import * as XLSX from "xlsx";
 import {
   Search,
   Download,
@@ -58,7 +58,7 @@ const ALL_ROWS: HoldingRow[] = BOOK_INSTRUMENTS.map((inst) => {
     eirPct: v?.eir ?? 0,
     couponRate: inst.couponRate,
     maturityDate: inst.maturityDate ?? null,
-    stage: inst.impairmentStage ?? "N/A",
+    stage: inst.classification,
     status: inst.status as string,
   } as HoldingRow;
 });

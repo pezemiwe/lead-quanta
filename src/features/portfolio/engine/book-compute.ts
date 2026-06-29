@@ -1,4 +1,4 @@
-/* ─────────────────────────────────────────────────────────
+﻿/* ─────────────────────────────────────────────────────────
    Portfolio Canonical Computed Book
    Single authoritative pre-computation from all 204 instruments.
    All downstream modules (Deals, Performance, Accounting, Reporting)

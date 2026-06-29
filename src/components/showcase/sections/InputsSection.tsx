@@ -50,13 +50,13 @@ export function InputsSection({
           hint="Used for secure data exports."
         />
         <Select
-          label="ECL Stage"
+          label="Classification"
           options={[
-            { value: "1", label: "Stage 1 — 12-month ECL" },
-            { value: "2", label: "Stage 2 — Lifetime ECL (SICR)" },
-            { value: "3", label: "Stage 3 — Credit Impaired" },
+            { value: "AC", label: "AC — Amortised Cost" },
+            { value: "FVOCI", label: "FVOCI — Fair Value through OCI" },
+            { value: "FVTPL", label: "FVTPL — Fair Value through P&L" },
           ]}
-          placeholder="Select stage…"
+          placeholder="Select classification…"
           value={selectVal}
           onChange={(e) => setSelectVal(e.target.value)}
         />

@@ -1,9 +1,8 @@
-import type {
+﻿import type {
   Assumptions,
   Classification,
   CouponFrequency,
   Currency,
-  ImpairmentStage,
   Instrument,
   InstrumentType,
   YieldCurvePoint,
@@ -96,8 +95,6 @@ const SPEC_INSTRUMENTS: Instrument[] = [
     couponRate: 0.1398,
     couponFrequency: "Semi",
     status: "Active",
-    impairmentStage: "Stage 2",
-    eclProvision: 2_500_000,
   },
   {
     id: "INV-047",
@@ -115,8 +112,6 @@ const SPEC_INSTRUMENTS: Instrument[] = [
     couponRate: 0.1455,
     couponFrequency: "Semi",
     status: "Active",
-    impairmentStage: "Stage 2",
-    eclProvision: 1_250_000,
   },
   {
     id: "INV-039",
@@ -134,8 +129,6 @@ const SPEC_INSTRUMENTS: Instrument[] = [
     couponRate: 0,
     couponFrequency: "Zero",
     status: "Active",
-    impairmentStage: "N/A",
-    eclProvision: 0,
   },
   {
     id: "INV-091",
@@ -153,8 +146,6 @@ const SPEC_INSTRUMENTS: Instrument[] = [
     couponRate: 0.065,
     couponFrequency: "Semi",
     status: "Active",
-    impairmentStage: "Stage 2",
-    eclProvision: 200_000,
   },
 ];
 
@@ -406,22 +397,6 @@ function generateInstrument(id: string, type: InstrumentType): Instrument {
 
   const currency: Currency = type === "Eurobond" ? "USD" : "NGN";
 
-  const stages: ImpairmentStage[] = [
-    "Stage 1",
-    "Stage 1",
-    "Stage 1",
-    "Stage 2",
-  ];
-  const stage: ImpairmentStage =
-    classification === "FVTPL" || type === "Equity" ? "N/A" : pick(stages);
-
-  const eclProvision =
-    stage === "Stage 1"
-      ? Math.round(faceValue * 0.001)
-      : stage === "Stage 2"
-        ? Math.round(faceValue * 0.005)
-        : 0;
-
   return {
     id,
     name: makeName(type, issuerInfo.issuer, coupon, maturity),
@@ -442,8 +417,6 @@ function generateInstrument(id: string, type: InstrumentType): Instrument {
     couponRate: coupon,
     couponFrequency: def.freq,
     status: "Active",
-    impairmentStage: stage,
-    eclProvision,
   };
 }
 

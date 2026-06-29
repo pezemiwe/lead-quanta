@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+ï»¿import { useMemo, useState } from "react";
 import {
   CartesianGrid,
   Legend,
@@ -63,7 +63,7 @@ export function MarketDataYieldCurve() {
         <div>
           <h1 className="text-2xl font-bold text-dark-gray">Yield Curve</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Nelson-Siegel calibrated · {tab} sovereign curve · as at {snap.asOf}
+            Nelson-Siegel calibrated Â· {tab} sovereign curve Â· as at {snap.asOf}
           </p>
         </div>
         <div className="inline-flex rounded-lg border border-border bg-surface p-1">
@@ -86,7 +86,7 @@ export function MarketDataYieldCurve() {
       <div className="grid gap-4 sm:grid-cols-4">
         <div className="rounded-xl border border-border bg-surface p-4">
           <p className="text-xs uppercase tracking-wider text-gray-400">
-            ß0 (level)
+            Î²0 (level)
           </p>
           <p className="mt-1 text-lg font-semibold text-dark-gray">
             {fmtPct(params.beta0, 2)}
@@ -94,7 +94,7 @@ export function MarketDataYieldCurve() {
         </div>
         <div className="rounded-xl border border-border bg-surface p-4">
           <p className="text-xs uppercase tracking-wider text-gray-400">
-            ß1 (slope)
+            Î²1 (slope)
           </p>
           <p className="mt-1 text-lg font-semibold text-dark-gray">
             {params.beta1.toFixed(4)}
@@ -102,7 +102,7 @@ export function MarketDataYieldCurve() {
         </div>
         <div className="rounded-xl border border-border bg-surface p-4">
           <p className="text-xs uppercase tracking-wider text-gray-400">
-            ß2 (curvature)
+            Î²2 (curvature)
           </p>
           <p className="mt-1 text-lg font-semibold text-dark-gray">
             {params.beta2.toFixed(4)}
@@ -120,7 +120,7 @@ export function MarketDataYieldCurve() {
 
       <SectionCard
         title="Fitted curve vs observed quotes"
-        description="Continuous line = Nelson-Siegel · dots = observed FMDQ / DMO quotes"
+        description="Continuous line = Nelson-Siegel Â· dots = observed FMDQ / DMO quotes"
       >
         <div className="h-80">
           <ResponsiveContainer>

@@ -3,35 +3,32 @@ import {
   Activity,
   BookText,
   Briefcase,
-  FileText,
+  FileBarChart2,
   Landmark,
   LayoutDashboard,
-  ScrollText,
-  ShieldCheck,
   TrendingUp,
 } from "lucide-react";
 import {
   ModuleShell,
   type ModuleNavItem,
 } from "../../components/shared/module-shell";
-import { PlaceholderPage } from "../../components/shared/placeholder-page";
 import { ReportingDashboard } from "./pages/dashboard";
 import { ValuationReport } from "./pages/valuation";
-import { IFRS9Disclosures } from "./pages/ifrs9-disclosures";
 import { InvestmentCommittee } from "./pages/investment-committee";
 import { ALCO } from "./pages/alco";
 import { IFRS7Disclosures } from "./pages/ifrs7";
-import { ECLReports } from "./pages/ecl";
 import { RegulatoryLimits } from "./pages/regulatory";
+import { CreditQualityReport } from "./pages/credit-quality";
+import { AlcoPack } from "./pages/alco-pack";
 
 export type ReportingPage =
   | "dashboard"
   | "investment-committee"
   | "alco"
+  | "alco-pack"
   | "ifrs7"
-  | "ifrs9-disclosures"
+  | "credit-quality"
   | "valuation"
-  | "ecl"
   | "regulatory";
 
 const NAV: ModuleNavItem[] = [
@@ -54,27 +51,27 @@ const NAV: ModuleNavItem[] = [
     group: "management",
   },
   {
+    id: "alco-pack",
+    label: "ALCO Investment Pack",
+    icon: <FileBarChart2 className="h-4 w-4" />,
+    group: "management",
+  },
+  {
     id: "ifrs7",
     label: "IFRS 7 Disclosures",
     icon: <BookText className="h-4 w-4" />,
     group: "disclosures",
   },
   {
-    id: "ifrs9-disclosures",
-    label: "IFRS 9 Disclosures",
-    icon: <ScrollText className="h-4 w-4" />,
+    id: "credit-quality",
+    label: "Credit Quality",
+    icon: <TrendingUp className="h-4 w-4" />,
     group: "disclosures",
   },
   {
     id: "valuation",
     label: "Valuation Reports",
     icon: <TrendingUp className="h-4 w-4" />,
-    group: "operations",
-  },
-  {
-    id: "ecl",
-    label: "ECL Reports",
-    icon: <FileText className="h-4 w-4" />,
     group: "operations",
   },
   {
@@ -101,14 +98,14 @@ function PageBody({ page }: { page: ReportingPage }) {
       return <InvestmentCommittee />;
     case "alco":
       return <ALCO />;
+    case "alco-pack":
+      return <AlcoPack />;
     case "ifrs7":
       return <IFRS7Disclosures />;
-    case "ifrs9-disclosures":
-      return <IFRS9Disclosures />;
+    case "credit-quality":
+      return <CreditQualityReport />;
     case "valuation":
       return <ValuationReport />;
-    case "ecl":
-      return <ECLReports />;
     case "regulatory":
       return <RegulatoryLimits />;
   }

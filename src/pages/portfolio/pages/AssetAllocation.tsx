@@ -141,13 +141,13 @@ export function AssetAllocation() {
         ))}
         <div className="rounded-xl border border-border bg-surface p-4 shadow-sm">
           <p className="text-xs text-dark-gray/50 font-medium">
-            Total ECL Provision
+            OCI Reserve
           </p>
           <p className="mt-1 text-xl font-bold text-dark-gray">
-            {fmtCompact(totals.totalECLNGN)}
+            {fmtCompact(totals.totalOCIReserveNGN)}
           </p>
           <p className="mt-0.5 text-xs text-dark-gray/40">
-            {fmtPct(totals.totalECLNGN / totals.totalBSValueNGN)} coverage
+            {fmtPct(Math.abs(totals.totalOCIReserveNGN) / totals.totalBSValueNGN)} of book
           </p>
         </div>
       </div>

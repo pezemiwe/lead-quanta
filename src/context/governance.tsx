@@ -2,9 +2,28 @@ import {
   createContext,
   useContext,
   useState,
+  useEffect,
   useCallback,
   type ReactNode,
 } from "react";
+
+const STORAGE_AUDIT = "lq_audit_v1";
+const STORAGE_APPROVALS = "lq_approvals_v1";
+
+function loadFromStorage<T>(key: string, seed: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : seed;
+  } catch {
+    return seed;
+  }
+}
+import {
+  canDo,
+  getPersonaTier,
+  type CapabilityAction,
+  type PlatformCapability,
+} from "./platform-personas";
 
 /* ── Permission types ─────────────────────────────────────────── */
 export type Permission =
@@ -12,9 +31,6 @@ export type Permission =
   | "deal.create"
   | "deal.approve"
   | "deal.reject"
-  | "ecl.view"
-  | "ecl.modify"
-  | "ecl.approve"
   | "journal.view"
   | "journal.post"
   | "journal.approve"
@@ -29,109 +45,29 @@ export type Permission =
   | "portfolio.manage"
   | "admin.access";
 
-export type RoleKey =
-  | "Chief Financial Officer"
-  | "Chief Risk Officer"
-  | "Portfolio Analyst"
-  | "Risk Manager"
-  | "Compliance Officer"
-  | "Internal Auditor";
-
-export const ROLE_PERMISSIONS: Record<RoleKey, Permission[]> = {
-  "Chief Financial Officer": [
-    "deal.view",
-    "deal.create",
-    "deal.approve",
-    "deal.reject",
-    "ecl.view",
-    "ecl.modify",
-    "ecl.approve",
-    "journal.view",
-    "journal.post",
-    "journal.approve",
-    "valuation.view",
-    "valuation.override",
-    "limits.view",
-    "limits.manage",
-    "audit.view",
-    "compliance.view",
-    "report.generate",
-    "portfolio.view",
-    "portfolio.manage",
-    "admin.access",
-  ],
-  "Chief Risk Officer": [
-    "deal.view",
-    "ecl.view",
-    "ecl.modify",
-    "ecl.approve",
-    "journal.view",
-    "valuation.view",
-    "limits.view",
-    "limits.manage",
-    "audit.view",
-    "compliance.view",
-    "report.generate",
-    "portfolio.view",
-  ],
-  "Portfolio Analyst": [
-    "deal.view",
-    "deal.create",
-    "ecl.view",
-    "journal.view",
-    "valuation.view",
-    "limits.view",
-    "portfolio.view",
-    "portfolio.manage",
-    "report.generate",
-  ],
-  "Risk Manager": [
-    "deal.view",
-    "ecl.view",
-    "ecl.modify",
-    "ecl.approve",
-    "journal.view",
-    "valuation.view",
-    "limits.view",
-    "audit.view",
-    "compliance.view",
-    "portfolio.view",
-  ],
-  "Compliance Officer": [
-    "deal.view",
-    "ecl.view",
-    "journal.view",
-    "valuation.view",
-    "limits.view",
-    "audit.view",
-    "compliance.view",
-    "report.generate",
-    "portfolio.view",
-  ],
-  "Internal Auditor": [
-    "deal.view",
-    "ecl.view",
-    "journal.view",
-    "valuation.view",
-    "limits.view",
-    "audit.view",
-    "compliance.view",
-    "portfolio.view",
-  ],
-};
-
-/* Role tiers for UI labelling */
-export const ROLE_TIER: Record<
-  RoleKey,
-  "maker" | "checker" | "viewer" | "admin"
+const PERM_CAPABILITY: Partial<
+  Record<Permission, { capability: PlatformCapability; action: CapabilityAction }>
 > = {
-  "Chief Financial Officer": "admin",
-  "Chief Risk Officer": "checker",
-  "Portfolio Analyst": "maker",
-  "Risk Manager": "checker",
-  "Compliance Officer": "viewer",
-  "Internal Auditor": "viewer",
+  "deal.view": { capability: "dealSlip", action: "V" },
+  "deal.create": { capability: "dealSlip", action: "C" },
+  "deal.approve": { capability: "approval", action: "A" },
+  "deal.reject": { capability: "approval", action: "A" },
+  "journal.view": { capability: "acctGl", action: "V" },
+  "journal.post": { capability: "acctGl", action: "P" },
+  "journal.approve": { capability: "acctGl", action: "P" },
+  "valuation.view": { capability: "valuation", action: "V" },
+  "valuation.override": { capability: "valuation", action: "R" },
+  "limits.view": { capability: "limits", action: "V" },
+  "limits.manage": { capability: "limits", action: "R" },
+  "audit.view": { capability: "auditAdmin", action: "V" },
+  "compliance.view": { capability: "checks", action: "V" },
+  "report.generate": { capability: "reports", action: "V" },
+  "portfolio.view": { capability: "register", action: "V" },
+  "portfolio.manage": { capability: "register", action: "S" },
+  "admin.access": { capability: "auditAdmin", action: "M" },
 };
+
+export type RoleKey = string;
 
 /* ── Audit trail ──────────────────────────────────────────────── */
 export interface AuditEntry {
@@ -154,7 +90,7 @@ const SEED_AUDIT: AuditEntry[] = [
     user: "Fatima Aliyu",
     role: "Portfolio Analyst",
     module: "Deals",
-    action: "New Booking Submitted",
+    action: "Deal capture submitted",
     detail:
       "FGN Bond 2031 — ₦500,000,000 face value submitted for checker approval",
     status: "success",
@@ -176,10 +112,10 @@ const SEED_AUDIT: AuditEntry[] = [
     timestamp: "2026-05-29 09:02:44",
     user: "Chidi Okafor",
     role: "Risk Manager",
-    module: "IFRS 9",
-    action: "ECL Stage Change Submitted",
+    module: "Valuation",
+    action: "Valuation Override Submitted",
     detail:
-      "ACCESS BANK PLC moved Stage 1 → Stage 2. Lifetime ECL ₦12.4M. Submitted for CRO approval",
+      "ACCESS BANK PLC Bond — Level 3 override requested: ₦97.20 vs model ₦96.40. Submitted for CRO approval",
     status: "warning",
     ip: "10.0.1.55",
   },
@@ -188,10 +124,10 @@ const SEED_AUDIT: AuditEntry[] = [
     timestamp: "2026-05-29 09:11:30",
     user: "Emeka Nwosu",
     role: "Chief Risk Officer",
-    module: "IFRS 9",
-    action: "ECL Stage Change Approved",
+    module: "Valuation",
+    action: "Valuation Override Approved",
     detail:
-      "Stage 2 classification for ACCESS BANK PLC confirmed. Impairment charge posted.",
+      "Level 3 override for ACCESS BANK PLC Bond confirmed. Rationale: illiquid market, last trade basis.",
     status: "success",
     ip: "10.0.1.22",
   },
@@ -201,7 +137,7 @@ const SEED_AUDIT: AuditEntry[] = [
     user: "Fatima Aliyu",
     role: "Portfolio Analyst",
     module: "Deals",
-    action: "New Booking Submitted",
+    action: "Deal capture submitted",
     detail:
       "MTN Nigeria Bond 2028 — ₦1,200,000,000 face value — exceeds single-issuer 10% guideline",
     status: "warning",
@@ -334,11 +270,11 @@ export interface ApprovalItem {
   id: string;
   type:
     | "deal"
-    | "ecl"
     | "journal"
     | "valuation"
     | "limit-exception"
-    | "counterparty";
+    | "counterparty"
+    | "impairment";
   title: string;
   description: string;
   amount: number;
@@ -384,16 +320,16 @@ const SEED_APPROVALS: ApprovalItem[] = [
   },
   {
     id: "ap003",
-    type: "ecl",
-    title: "DANGOTE CEMENT PLC — Stage 1 → Stage 2",
+    type: "impairment",
+    title: "DANGOTE CEMENT PLC — Credit Watch",
     description:
-      "SICR indicators triggered: DSR ratio deteriorated from 2.1x to 1.4x. Recommend Lifetime ECL — ₦28.7M charge.",
+      "DSR ratio deteriorated from 2.1x to 1.4x. Recommend credit watch classification and impairment review for bond holding.",
     amount: 28_700_000,
     maker: "Chidi Okafor",
     makerRole: "Risk Manager",
     submittedAt: "2026-05-29 09:50:00",
     status: "pending",
-    module: "IFRS 9",
+    module: "Valuation",
     priority: "high",
     requiredApprover: "Chief Risk Officer",
   },
@@ -402,7 +338,7 @@ const SEED_APPROVALS: ApprovalItem[] = [
     type: "journal",
     title: "May 2026 FV Adjustment Batch",
     description:
-      "Fair value mark-to-market for 47 FVOCI instruments. Net OCI movement ₦(124.3M). IFRS 9 journals.",
+      "Fair value mark-to-market for 47 FVOCI instruments. Net OCI movement ₦(124.3M). Fair value adjustment journals.",
     amount: 124_300_000,
     maker: "Fatima Aliyu",
     makerRole: "Portfolio Analyst",
@@ -593,8 +529,20 @@ function nextId() {
 }
 
 export function GovernanceProvider({ children }: { children: ReactNode }) {
-  const [auditLog, setAuditLog] = useState<AuditEntry[]>(SEED_AUDIT);
-  const [approvals, setApprovals] = useState<ApprovalItem[]>(SEED_APPROVALS);
+  const [auditLog, setAuditLog] = useState<AuditEntry[]>(() =>
+    loadFromStorage(STORAGE_AUDIT, SEED_AUDIT),
+  );
+  const [approvals, setApprovals] = useState<ApprovalItem[]>(() =>
+    loadFromStorage(STORAGE_APPROVALS, SEED_APPROVALS),
+  );
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_AUDIT, JSON.stringify(auditLog));
+  }, [auditLog]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_APPROVALS, JSON.stringify(approvals));
+  }, [approvals]);
 
   const logAction = useCallback(
     (entry: Omit<AuditEntry, "id" | "timestamp">) => {
@@ -618,13 +566,18 @@ export function GovernanceProvider({ children }: { children: ReactNode }) {
   );
 
   const hasPermission = useCallback((role: string, perm: Permission) => {
-    const perms = ROLE_PERMISSIONS[role as RoleKey];
-    if (!perms) return false;
-    return perms.includes(perm);
+    const mapped = PERM_CAPABILITY[perm];
+    if (mapped) return canDo(role, mapped.capability, mapped.action);
+    return false;
   }, []);
 
   const getTier = useCallback((role: string) => {
-    return ROLE_TIER[role as RoleKey] ?? "viewer";
+    const tier = getPersonaTier(role);
+    if (tier === "admin") return "admin" as const;
+    if (tier === "maker") return "maker" as const;
+    if (tier === "checker" || tier === "approver" || tier === "settler" || tier === "finance")
+      return "checker" as const;
+    return "viewer" as const;
   }, []);
 
   const pendingCount = approvals.filter((a) => a.status === "pending").length;

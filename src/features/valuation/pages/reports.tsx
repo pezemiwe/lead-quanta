@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+﻿import * as XLSX from "xlsx";
 import { Download, FileText } from "lucide-react";
 import { useValuation } from "../store";
 import { SectionCard } from "../../../components/shared/section-card";
@@ -13,8 +13,8 @@ export function ValuationReports() {
     const headers = [
       "ID", "Name", "Instrument Type", "Issuer", "Sector", "Classification",
       "Currency", "Face Value", "Purchase Price", "Purchase Date", "Maturity Date",
-      "Coupon Rate", "Coupon Frequency", "IFRS 13 Level", "Impairment Stage",
-      "ECL Provision", "AC Carrying Value", "Clean Fair Value", "OCI Reserve",
+      "Coupon Rate", "Coupon Frequency", "IFRS 13 Level",
+      "AC Carrying Value", "Clean Fair Value", "OCI Reserve",
       "Unrealised G/L", "Balance Sheet Value (NGN)",
     ];
     const rows = v.result.valuations.map((vv) => {
@@ -22,8 +22,7 @@ export function ValuationReports() {
       return [
         i.id, i.name, i.instrumentType, i.issuer, i.sector, i.classification,
         i.currency, i.faceValue, i.purchasePrice, i.purchaseDate, i.maturityDate,
-        i.couponRate, i.couponFrequency, i.ifrs13Level, i.impairmentStage ?? "",
-        i.eclProvision ?? 0,
+        i.couponRate, i.couponFrequency, i.ifrs13Level,
         +vv.acCarryingValue.toFixed(2), +vv.cleanFairValue.toFixed(2),
         +vv.ociReserve.toFixed(2), +vv.unrealisedGL.toFixed(2),
         +vv.balanceSheetValueNGN.toFixed(2),
@@ -97,10 +96,6 @@ export function ValuationReports() {
           <Row
             label="Total OCI reserve (NGN)"
             value={fmtNumber(v.result.totals.totalOCIReserveNGN, 0)}
-          />
-          <Row
-            label="Total ECL provision (NGN)"
-            value={fmtNumber(v.result.totals.totalECLNGN, 0)}
           />
         </div>
       </SectionCard>

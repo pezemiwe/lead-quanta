@@ -4,12 +4,12 @@ import { S, Row } from "../helpers";
 export function BadgesSection() {
   return (
     <S label="Badges">
-      <Row label="IFRS 9 Stages">
-        <Badge variant="stage1">Stage 1</Badge>
-        <Badge variant="stage2">Stage 2</Badge>
-        <Badge variant="stage3">Stage 3</Badge>
+      <Row label="IFRS 13 Classification">
+        <Badge variant="success">AC</Badge>
+        <Badge variant="warning">FVOCI</Badge>
+        <Badge variant="danger">FVTPL</Badge>
       </Row>
-      <Row label="CBN Classification">
+      <Row label="Credit Rating">
         <Badge variant="performing">Performing</Badge>
         <Badge variant="watch">Watch</Badge>
         <Badge variant="substandard">Substandard</Badge>

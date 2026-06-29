@@ -1,4 +1,4 @@
-import {
+﻿import {
   BarChart,
   Bar,
   XAxis,
@@ -24,7 +24,6 @@ interface SectorRow {
   instruments: number;
   bsValueNGN: number;
   pctOfPortfolio: number;
-  totalECL: number;
 }
 
 type Row = {

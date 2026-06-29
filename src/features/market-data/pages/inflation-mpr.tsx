@@ -1,4 +1,4 @@
-import {
+ï»¿import {
   Bar,
   CartesianGrid,
   ComposedChart,
@@ -36,7 +36,7 @@ export function MarketDataInflationMpr() {
           Inflation & Monetary Policy Rate
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Nigerian CPI vs CBN MPR · 12-month trend
+          Nigerian CPI vs CBN MPR Â· 12-month trend
         </p>
       </div>
 
@@ -44,7 +44,7 @@ export function MarketDataInflationMpr() {
         <StatCard
           title="CPI Inflation (y/y)"
           value={fmtPct(snapshot.inflation, 2)}
-          subtitle="NBS — latest print"
+          subtitle="NBS Â· latest print"
           icon={<Percent className="h-4 w-4" />}
           variant="highlight"
         />
@@ -59,8 +59,8 @@ export function MarketDataInflationMpr() {
           value={`${realRate >= 0 ? "+" : ""}${fmtPct(realRate, 2)}`}
           subtitle={
             realRate >= 0
-              ? "Positive — restrictive policy stance"
-              : "Negative — accommodative in real terms"
+              ? "Positive Â· restrictive policy stance"
+              : "Negative Â· accommodative in real terms"
           }
           icon={<Percent className="h-4 w-4" />}
           variant={realRate < 0 ? "warning" : "default"}
@@ -68,8 +68,8 @@ export function MarketDataInflationMpr() {
       </div>
 
       <SectionCard
-        title="CPI vs MPR · 12-month series"
-        description="Bars = CPI inflation · Lines = MPR and real policy rate"
+        title="CPI vs MPR Â· 12-month series"
+        description="Bars = CPI inflation Â· Lines = MPR and real policy rate"
       >
         <div className="h-96">
           <ResponsiveContainer>

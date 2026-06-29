@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown } from "lucide-react";
+ï»¿import { TrendingUp, TrendingDown } from "lucide-react";
 import { useState } from "react";
 import {
   BarChart,
@@ -77,7 +77,7 @@ const sectorIncome = BOOK_COMPUTED.bySector
   .map((s) => {
     const sVals = vals.filter((v) => v.instrument.sector === s.sector);
     return {
-      sector: s.sector.length > 12 ? s.sector.slice(0, 12) + "…" : s.sector,
+      sector: s.sector.length > 12 ? s.sector.slice(0, 12) + "â€¦" : s.sector,
       income: sVals.reduce((a, v) => a + v.annualEIRIncome, 0),
     };
   })
@@ -121,13 +121,13 @@ const METRICS = [
     positive: true,
   },
   {
-    label: "OCI Reserve — Fair Value through OCI",
+    label: "OCI Reserve â€” Fair Value through OCI",
     value: fmtCompact(totalOCI),
     note: "Unrealised in equity",
     positive: totalOCI >= 0,
   },
   {
-    label: "Unrealised Gain/(Loss) — Fair Value (P&L)",
+    label: "Unrealised Gain/(Loss) â€” Fair Value (P&L)",
     value: fmtCompact(totalFVTPL),
     note: "Through profit & loss",
     positive: totalFVTPL >= 0,
@@ -216,7 +216,7 @@ export function PerformanceAnalytics() {
             <XAxis dataKey="sector" tick={{ fontSize: 10 }} />
             <YAxis
               tick={{ fontSize: 10 }}
-              tickFormatter={(v: number) => `?${(v / 1e9).toFixed(0)}B`}
+              tickFormatter={(v: number) => `â‚¦${(v / 1e9).toFixed(0)}B`}
             />
             <Tooltip
               formatter={
@@ -279,7 +279,7 @@ export function PerformanceAnalytics() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-dark-gray">
-            Fair Value (OCI) — OCI Reserve
+            Fair Value (OCI) â€” OCI Reserve
           </h2>
           <p className="text-2xl font-bold text-dark-gray">
             {fmtCompact(totalOCI)}
@@ -311,7 +311,7 @@ export function PerformanceAnalytics() {
         </div>
         <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-dark-gray">
-            Fair Value (P&L) — Unrealised Gain/(Loss)
+            Fair Value (P&L) â€” Unrealised Gain/(Loss)
           </h2>
           <p
             className={`text-2xl font-bold ${totalFVTPL >= 0 ? "text-emerald-600" : "text-primary"}`}

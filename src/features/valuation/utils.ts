@@ -1,8 +1,7 @@
-import type {
+﻿import type {
   Classification,
   Currency,
   InstrumentType,
-  ImpairmentStage,
 } from "./engine/types";
 
 /* ─── currency formatting ───────────────────────────────── */
@@ -72,13 +71,6 @@ export const CLASSIFICATION_BADGE: Record<Classification, string> = {
   AC: "bg-teal-50 text-success",
   FVOCI: "bg-blue-50 text-blue-700",
   FVTPL: "bg-pale-red text-primary",
-};
-
-export const STAGE_BADGE: Record<ImpairmentStage, string> = {
-  "Stage 1": "bg-teal-50 text-success",
-  "Stage 2": "bg-amber-50 text-amber-700",
-  "Stage 3": "bg-pale-red text-primary",
-  "N/A": "bg-gray-100 text-gray-500",
 };
 
 export const INSTRUMENT_TYPE_COLOR: Record<InstrumentType, string> = {

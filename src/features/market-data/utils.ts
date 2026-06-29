@@ -1,4 +1,4 @@
-export function fmtPct(v: number, dp = 2): string {
+﻿export function fmtPct(v: number, dp = 2): string {
   if (v == null || isNaN(v)) return "—";
   return `${(v * 100).toFixed(dp)}%`;
 }

@@ -12,6 +12,8 @@ import {
   fmtCompact,
   fmtPct,
 } from "../../portfolio/engine/book-compute";
+import { WorkflowRegisterBanner } from "../../../components/shared/workflow-register-banner";
+import { useWorkflow } from "../../workflow/store";
 
 interface AccrualRow {
   id: string;
@@ -28,6 +30,7 @@ type Row = AccrualRow & Record<string, unknown>;
 
 export function Accruals() {
   const [selected, setSelected] = useState<Row | null>(null);
+  const { register } = useWorkflow();
   const rows = useMemo<Row[]>(() => {
     return BOOK_COMPUTED.valuations
       .filter((v) => v.accruedInterest > 0)
@@ -114,10 +117,12 @@ export function Accruals() {
           Interest Accruals
         </h1>
         <p className="mt-1 text-sm text-dark-gray/60">
-          Accrued interest receivable per instrument · {rows.length} instruments
-          · Valuation date 28 May 2026
+          Finance triggers from approved, settled register positions. Legacy seed book shown below;{" "}
+          {register.length} workflow-settled position(s) in register.
         </p>
       </div>
+
+      <WorkflowRegisterBanner />
 
       <StatCardGrid>
         <StatCard

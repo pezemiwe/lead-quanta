@@ -1,0 +1,51 @@
+---
+description: Core platform architecture — shared services, deal slip workflow, segregation of duties, register, exceptions, audit
+alwaysApply: true
+---
+
+# Lead Quanta Platform Architecture
+
+These principles govern all design and implementation. Do not build persona-specific silos or bypass the deal slip / register model.
+
+## Shared platform, persona-specific screens
+
+Do not build a separate system per desk. Use **shared services** with different dashboards, fields, rights, and workflow paths by persona. See **platform-personas** rule for the full persona catalogue, objectives, and required feature sets.
+
+## Deal slip is mandatory
+
+The **deal slip** is the formal transaction workflow object. It captures economics, documents, system checks, approvals, settlement instructions, and audit trail. No investment transaction exists outside a deal slip. See **platform-workflows** for status flow, settlement steps, and register update rules.
+
+## Segregation of duties
+
+| Persona | Responsibility |
+|---------|----------------|
+| Front Office | Creates deal slips |
+| Middle Office, Risk, Compliance | Review |
+| Portfolio Manager, Head of Investments, ALCO | Approve |
+| Back Office | Raise settlement instruction, confirm settlement |
+| Finance | Post accounting |
+
+Do not collapse these roles into a single actor or skip required review/approval steps.
+
+## No settlement confirmation, no active holding
+
+An approved deal is **not** an active investment position until Back Office confirms settlement. Holdings and downstream modules must reflect this gate.
+
+## Investment register is the source of truth
+
+The **investment register** stores the official approved and settled position. It feeds accruals, valuation, maturities, limits, accounting, and reports. Do not treat blotter, pipeline, or deal-slip draft state as the canonical position.
+
+## Every exception must have a workflow
+
+Warnings, breaches, overrides, failed settlements, and missing documents must remain **visible** until assigned, approved, and closed. Do not silently dismiss or auto-clear exceptions.
+
+## Audit trail is not optional
+
+Every create, amend, review, approve, reject, override, settle, post, and delete action must record:
+
+- User
+- Timestamp
+- Old value and new value (where applicable)
+- Reason (where applicable)
+
+See **platform-acceptance** for developer acceptance criteria and MVP build sequence.

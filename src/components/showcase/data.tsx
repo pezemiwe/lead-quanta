@@ -1,104 +1,117 @@
-import { Badge, StageBadge } from "..";
+import { Badge } from "..";
 import type { TabItem, Step, DataTableColumn } from "..";
 
 export const PORTFOLIO_TABS: TabItem[] = [
   { value: "overview", label: "Overview", count: 3 },
   { value: "investments", label: "Investment Book", count: 1240 },
-  { value: "ecl", label: "ECL Results" },
-  { value: "ead", label: "EAD Projection", disabled: true },
+  { value: "valuation", label: "Valuation" },
+  { value: "reports", label: "Reports", disabled: true },
 ];
 
 export const STEPS: Step[] = [
   {
     id: "1",
-    label: "Data Upload",
-    description: "Upload raw loan data",
+    label: "Deal Capture",
+    description: "Record trade details",
     status: "completed",
   },
   {
     id: "2",
-    label: "PD Allocation",
-    description: "Apply PD model",
+    label: "Checker Review",
+    description: "Dual-control sign-off",
     status: "active",
   },
-  { id: "3", label: "LGD Estimation", status: "pending" },
-  { id: "4", label: "ECL Calculation", status: "pending" },
+  { id: "3", label: "CRO Approval", status: "pending" },
+  { id: "4", label: "Settlement", status: "pending" },
 ];
 
 export type LoanRow = {
   id: string;
-  facility: string;
-  stage: string;
-  outstanding: string;
-  ecl: string;
+  instrument: string;
+  classification: string;
+  faceValue: string;
+  yield: string;
   status: string;
 };
 
 export const LOAN_ROWS: LoanRow[] = [
   {
-    id: "L001",
-    facility: "Term Loan",
-    stage: "Stage 1",
-    outstanding: "₦450,000,000",
-    ecl: "₦1,350,000",
-    status: "Performing",
+    id: "INV-001",
+    instrument: "FGN Bond 2031",
+    classification: "AC",
+    faceValue: "₦450,000,000",
+    yield: "15.25%",
+    status: "Active",
   },
   {
-    id: "L002",
-    facility: "Overdraft",
-    stage: "Stage 2",
-    outstanding: "₦78,500,000",
-    ecl: "₦9,420,000",
+    id: "INV-002",
+    instrument: "Zenith Bank Bond",
+    classification: "FVOCI",
+    faceValue: "₦78,500,000",
+    yield: "16.80%",
+    status: "Active",
+  },
+  {
+    id: "INV-003",
+    instrument: "NGX — Dangote Cement",
+    classification: "FVTPL",
+    faceValue: "₦25,000,000",
+    yield: "N/A",
     status: "Watch",
   },
   {
-    id: "L003",
-    facility: "Mortgage",
-    stage: "Stage 3",
-    outstanding: "₦25,000,000",
-    ecl: "₦12,500,000",
-    status: "Substandard",
+    id: "INV-004",
+    instrument: "CBN T-Bill 182d",
+    classification: "AC",
+    faceValue: "₦310,000,000",
+    yield: "18.50%",
+    status: "Active",
   },
   {
-    id: "L004",
-    facility: "LPO Finance",
-    stage: "Stage 1",
-    outstanding: "₦310,000,000",
-    ecl: "₦930,000",
-    status: "Performing",
-  },
-  {
-    id: "L005",
-    facility: "Lease",
-    stage: "Stage 2",
-    outstanding: "₦55,000,000",
-    ecl: "₦6,600,000",
-    status: "Doubtful",
+    id: "INV-005",
+    instrument: "Lafarge Africa Bond",
+    classification: "FVOCI",
+    faceValue: "₦55,000,000",
+    yield: "17.40%",
+    status: "Active",
   },
 ];
 
 export const LOAN_COLS: DataTableColumn<LoanRow>[] = [
-  { key: "id", header: "ID", width: "80px" },
-  { key: "facility", header: "Facility Type" },
+  { key: "id", header: "ID", width: "90px" },
+  { key: "instrument", header: "Instrument" },
   {
-    key: "stage",
-    header: "Stage",
+    key: "classification",
+    header: "Classification",
     render: (r) => (
-      <StageBadge stage={r.stage as "Stage 1" | "Stage 2" | "Stage 3"} />
+      <Badge
+        variant={
+          r.classification === "AC"
+            ? "success"
+            : r.classification === "FVOCI"
+              ? "warning"
+              : "neutral"
+        }
+        size="sm"
+      >
+        {r.classification}
+      </Badge>
     ),
   },
-  { key: "outstanding", header: "Outstanding", align: "right" },
+  { key: "faceValue", header: "Face Value", align: "right" },
   {
-    key: "ecl",
-    header: "ECL Charge",
+    key: "yield",
+    header: "Yield",
     align: "right",
-    render: (r) => <span className="font-medium text-danger">{r.ecl}</span>,
+    render: (r) => (
+      <span className="font-medium text-success">{r.yield}</span>
+    ),
   },
   {
     key: "status",
     header: "Status",
     render: (r) => (
-      <Badge variant="performing" size="sm">
+      <Badge variant={r.status === "Watch" ? "warning" : "success"} size="sm">
         {r.status}
       </Badge>
     ),

@@ -2,7 +2,6 @@ import { ShieldCheck, AlertTriangle, Lock, Eye } from "lucide-react";
 import { usePersona } from "../../context/persona";
 import {
   useGovernance,
-  ROLE_TIER,
   type Permission,
 } from "../../context/governance";
 import { Link } from "react-router-dom";

@@ -1,0 +1,44 @@
+---
+description: Developer acceptance criteria, MVP build sequence, and critical defect guardrails
+alwaysApply: true
+---
+
+# Lead Quanta Acceptance Criteria
+
+Use these as the definition of done for platform features. See **platform-personas**, **platform-workflows**, and **platform-architecture** for supporting detail.
+
+## 8. Developer acceptance criteria
+
+| Area | Acceptance criterion |
+|------|---------------------|
+| **Persona access** | Each persona lands on a relevant dashboard and sees only permitted features, fields, and actions |
+| **Deal slip workflow** | Every trade has a deal slip before approval and settlement, except system-configured exempt activities approved by governance |
+| **Control checks** | Required limit, compliance, rating, tenor, and eligibility checks run before approval. Breaches must not disappear |
+| **Approval routing** | Routing based on amount, asset class, fund, counterparty, exception type, and approval mandate |
+| **Settlement control** | Back Office raises or confirms settlement instructions from an approved deal slip. Traders cannot confirm settlements |
+| **Register integrity** | Investment register updates only after settlement confirmation or an approved lifecycle event |
+| **Accounting trigger** | Finance outputs generated from approved, settled, and classified records |
+| **Audit evidence** | All changes, approvals, returns, rejections, settlements, overrides, and postings are traceable |
+| **Exception management** | Every exception has an owner, due date, status, approval evidence, and closure comment |
+| **Reporting** | Dashboards reconcile to investment register, accrual engine, valuation records, and GL status |
+
+## Build priority
+
+### MVP sequence (build in this order)
+
+```
+Trade Blotter → Deal Slip → Automated Checks → Approval → Settlement
+  → Investment Register → Accrual → Limits → Reports
+```
+
+Do not build downstream modules (accrual, limits, reports) against blotter or draft deal data — wire them to the register after settlement.
+
+### Advanced sequence (post-MVP)
+
+```
+Valuation → Performance → Stress Analytics → GL Interface → Full ALCO and Board reporting
+```
+
+### Critical defect to avoid
+
+**Never allow a trade to become an active holding without an approved deal slip and confirmed settlement.** This is the highest-risk defect in the system.

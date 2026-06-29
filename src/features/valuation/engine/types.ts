@@ -12,7 +12,6 @@ export type CouponFrequency =
   | "Monthly"
   | "Zero"
   | "N/A";
-export type ImpairmentStage = "Stage 1" | "Stage 2" | "Stage 3" | "N/A";
 export type InstrumentStatus = "Active" | "Matured" | "Sold";
 
 export type InstrumentType =
@@ -55,9 +54,6 @@ export interface Instrument {
   marketYield?: number; // fraction; overrides curve interpolation
   marketPrice?: number; // absolute (local ccy) clean fair value override
 
-  /* Impairment */
-  impairmentStage?: ImpairmentStage;
-  eclProvision?: number; // local currency
 }
 
 /* ─── valuation engine assumptions ──────────────────────── */
@@ -162,6 +158,8 @@ export interface InstrumentValuation {
 
   /* NGN balance sheet value (after FX) */
   balanceSheetValueNGN: number;
+  /* USD equivalent (balanceSheetValueNGN / fxUSD) */
+  balanceSheetValueUSD: number;
 }
 
 /* ─── portfolio rollups ─────────────────────────────────── */
@@ -170,7 +168,6 @@ export interface PortfolioByClassification {
   count: number;
   faceValueNGN: number;
   bsValueNGN: number;
-  eclNGN: number;
 }
 
 export interface PortfolioByType {
@@ -210,14 +207,12 @@ export interface IncomeSummary {
     instruments: number;
     totalCarryingValueNGN: number;
     totalAccruedInterestNGN: number;
-    totalECLNGN: number;
   };
   fvoci: {
     instruments: number;
     totalACCarryingValueNGN: number;
     totalFairValueNGN: number;
     totalOCIReserveNGN: number;
-    totalECLNGN: number;
   };
   fvtpl: {
     instruments: number;
@@ -232,7 +227,8 @@ export interface PortfolioResult {
     instruments: number;
     totalFaceValueNGN: number;
     totalBSValueNGN: number;
-    totalECLNGN: number;
+    totalFaceValueUSD: number;
+    totalBSValueUSD: number;
     totalOCIReserveNGN: number;
     totalFVTPLUnrealisedGLNGN: number;
   };

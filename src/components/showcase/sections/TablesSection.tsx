@@ -23,13 +23,13 @@ export function TablesSection({ filterClose, setFilterClose }: Props) {
         >
           <div className="space-y-3">
             <Select
-              label="Stage"
+              label="Classification"
               options={[
-                { value: "1", label: "Stage 1" },
-                { value: "2", label: "Stage 2" },
-                { value: "3", label: "Stage 3" },
+                { value: "AC", label: "Amortised Cost" },
+                { value: "FVOCI", label: "Fair Value (OCI)" },
+                { value: "FVTPL", label: "Fair Value (P&L)" },
               ]}
-              placeholder="All stages"
+              placeholder="All classifications"
             />
             <Select
               label="Status"

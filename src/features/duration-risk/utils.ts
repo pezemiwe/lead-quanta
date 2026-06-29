@@ -1,4 +1,4 @@
-/** Sector → brand colour. */
+﻿/** Sector → brand colour. */
 export const SECTOR_COLOR: Record<string, string> = {
   Sovereign: "#1abc9c",
   Banking: "#2980b9",

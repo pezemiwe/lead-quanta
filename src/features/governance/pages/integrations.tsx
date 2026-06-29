@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   Activity,
   Upload,
@@ -235,7 +235,7 @@ const INTEGRATIONS: Integration[] = [
     dataFlows: [
       "Bulk instrument master data",
       "Historical market prices",
-      "Manual PD/LGD parameters",
+      "Manual credit rating parameters",
       "Counterparty static data",
     ],
   },
@@ -261,13 +261,13 @@ const INTEGRATIONS: Integration[] = [
     category: "api",
     vendor: "Leadway Holdings IT",
     description:
-      "Outbound REST API for third-party data consumers. Provides read access to portfolio analytics, ECL results, and valuations.",
+      "Outbound REST API for third-party data consumers. Provides read access to portfolio analytics, valuation results, and market data.",
     status: "active",
     lastSync: "Continuously available",
     syncFrequency: "On-demand",
     dataFlows: [
       "Portfolio analytics data",
-      "ECL computation results",
+      "Valuation and credit quality results",
       "Valuation outputs",
       "Market data feeds",
     ],

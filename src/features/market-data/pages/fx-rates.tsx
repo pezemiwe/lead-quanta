@@ -1,4 +1,4 @@
-import {
+﻿import {
   CartesianGrid,
   Legend,
   Line,
@@ -36,7 +36,7 @@ export function MarketDataFx() {
       <div>
         <h1 className="text-2xl font-bold text-dark-gray">FX Rates</h1>
         <p className="mt-1 text-sm text-gray-500">
-          90-day Naira cross history � CBN Investors' & Exporters' window
+          90-day Naira cross history · CBN Investors' & Exporters' window
         </p>
       </div>
 
@@ -49,8 +49,8 @@ export function MarketDataFx() {
             <StatCard
               key={p.code}
               title={`${p.code.slice(0, 3)} / NGN`}
-              value={`?${fmtFx(today.rate)}`}
-              subtitle={`${p.label} � 90-day ${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`}
+              value={`₦${fmtFx(today.rate)}`}
+              subtitle={`${p.label} · 90-day ${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`}
               icon={<Coins className="h-4 w-4" />}
               trend={{
                 direction: pct > 0 ? "up" : pct < 0 ? "down" : "neutral",
@@ -62,7 +62,7 @@ export function MarketDataFx() {
       </div>
 
       <SectionCard
-        title="FX rates � 90-day history"
+        title="FX rates · 90-day history"
         description="All quotes expressed as NGN per unit of foreign currency"
       >
         <div className="h-96">
@@ -77,9 +77,9 @@ export function MarketDataFx() {
               <YAxis
                 tick={{ fontSize: 11 }}
                 domain={["auto", "auto"]}
-                tickFormatter={(v: number) => `?${v.toFixed(0)}`}
+                tickFormatter={(v: number) => `₦${v.toFixed(0)}`}
               />
-              <Tooltip formatter={(v) => `?${fmtFx(Number(v ?? 0))}`} />
+              <Tooltip formatter={(v) => `₦${fmtFx(Number(v ?? 0))}`} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               {PAIRS.map((p) => (
                 <Line

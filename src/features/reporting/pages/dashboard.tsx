@@ -1,4 +1,4 @@
-import {
+﻿import {
   BarChart,
   Bar,
   XAxis,
@@ -76,9 +76,9 @@ export function ReportingDashboard() {
           variant="default"
         />
         <StatCard
-          title="Total ECL Provision"
-          value={fmtCompact(totals.totalECLNGN)}
-          subtitle="Expected credit loss (IFRS 9)"
+          title="OCI Reserve"
+          value={fmtCompact(totals.totalOCIReserveNGN)}
+          subtitle="Unrealised fair value movements"
           variant="warning"
         />
         <StatCard
@@ -115,8 +115,8 @@ export function ReportingDashboard() {
               bold
             />
             <SummaryRow
-              label="ECL provision"
-              value={fmtCompact(totals.totalECLNGN)}
+              label="FVTPL unrealised G/L"
+              value={fmtCompact(totals.totalFVTPLUnrealisedGLNGN)}
             />
             <SummaryRow
               label="OCI reserve (FVOCI)"
@@ -185,7 +185,7 @@ export function ReportingDashboard() {
             <XAxis dataKey="bucket" tick={{ fontSize: 10 }} />
             <YAxis
               tick={{ fontSize: 10 }}
-              tickFormatter={(v: number) => `?${(v / 1e9).toFixed(1)}B`}
+              tickFormatter={(v: number) => `₦${(v / 1e9).toFixed(1)}B`}
             />
             <Tooltip
               formatter={

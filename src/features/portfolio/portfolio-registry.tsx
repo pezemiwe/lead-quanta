@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+﻿import { createContext, useContext, useState, type ReactNode } from "react";
 
 /* -------------------------------------------------------
    Portfolio Registry
@@ -8,6 +8,8 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 
 export type PortfolioType = "Trading" | "Banking" | "HTM" | "AFS" | "Custom";
 export type PortfolioStatus = "Active" | "Inactive" | "Archived";
+
+export type PortfolioMandate = "Discretionary" | "Non-Discretionary";
 
 export interface Portfolio {
   id: string;
@@ -21,6 +23,7 @@ export interface Portfolio {
   status: PortfolioStatus;
   createdAt: string; // ISO date
   instrumentCount?: number;
+  mandate?: PortfolioMandate;
 }
 
 const SEED: Portfolio[] = [
@@ -36,6 +39,7 @@ const SEED: Portfolio[] = [
     status: "Active",
     createdAt: "2024-01-01",
     instrumentCount: 68,
+    mandate: "Discretionary",
   },
   {
     id: "pb-banking",
@@ -49,6 +53,7 @@ const SEED: Portfolio[] = [
     status: "Active",
     createdAt: "2024-01-01",
     instrumentCount: 97,
+    mandate: "Non-Discretionary",
   },
   {
     id: "pb-htm",
@@ -62,6 +67,7 @@ const SEED: Portfolio[] = [
     status: "Active",
     createdAt: "2024-01-01",
     instrumentCount: 39,
+    mandate: "Non-Discretionary",
   },
 ];
 

@@ -1,4 +1,4 @@
-import { Briefcase, Wallet, ShieldAlert, Activity } from "lucide-react";
+﻿import { Briefcase, Wallet, Activity } from "lucide-react";
 import { useValuation } from "../store";
 import { SectionCard } from "../../../components/shared/section-card";
 import { StatCard } from "../../../components/shared/stat-card";
@@ -37,13 +37,6 @@ export function ValuationOverview() {
           icon={<Wallet className="h-4 w-4" />}
         />
         <StatCard
-          title="ECL Provision"
-          value={fmtMoneyCompact(totals.totalECLNGN, "NGN")}
-          subtitle="Amortised Cost + Fair Value (OCI) stages"
-          icon={<ShieldAlert className="h-4 w-4" />}
-          variant="warning"
-        />
-        <StatCard
           title="OCI Reserve"
           value={fmtMoneyCompact(totals.totalOCIReserveNGN, "NGN")}
           subtitle="Fair Value (OCI) — unrealised movement"
@@ -65,7 +58,7 @@ export function ValuationOverview() {
                 <th className="px-5 py-2.5 text-right">Count</th>
                 <th className="px-5 py-2.5 text-right">Face Value (NGN)</th>
                 <th className="px-5 py-2.5 text-right">BS Value (NGN)</th>
-                <th className="px-5 py-2.5 text-right">ECL</th>
+                <th className="px-5 py-2.5 text-right">BS Value %</th>
               </tr>
             </thead>
             <tbody>
@@ -90,8 +83,8 @@ export function ValuationOverview() {
                   <td className="px-5 py-3 text-right font-mono font-semibold">
                     {fmtNumber(r.bsValueNGN, 0)}
                   </td>
-                  <td className="px-5 py-3 text-right font-mono text-primary">
-                    {fmtNumber(r.eclNGN, 0)}
+                  <td className="px-5 py-3 text-right font-mono text-dark-gray/60">
+                    {totals.totalBSValueNGN > 0 ? `${((r.bsValueNGN / totals.totalBSValueNGN) * 100).toFixed(1)}%` : "—"}
                   </td>
                 </tr>
               ))}
@@ -108,9 +101,7 @@ export function ValuationOverview() {
                 <td className="px-5 py-2.5 text-right">
                   {fmtNumber(totals.totalBSValueNGN, 0)}
                 </td>
-                <td className="px-5 py-2.5 text-right">
-                  {fmtNumber(totals.totalECLNGN, 0)}
-                </td>
+                <td className="px-5 py-2.5 text-right">100.0%</td>
               </tr>
             </tbody>
           </table>

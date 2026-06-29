@@ -13,7 +13,7 @@ type ModalProps = {
   onClose: () => void;
   title?: string;
   description?: string;
-  children: ReactNode;
+  children?: ReactNode;
   footer?: ReactNode;
   size?: ModalSize;
   closeOnOverlay?: boolean;
@@ -73,7 +73,7 @@ export const Modal = ({
         )}
       >
         {(title || description) && (
-          <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-4 py-4 sm:px-6 sm:py-4">
             <div>
               {title && (
                 <h2
@@ -97,9 +97,9 @@ export const Modal = ({
             </button>
           </div>
         )}
-        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
-          {children}
-        </div>
+        {children != null && (
+          <div className="overflow-y-auto px-4 py-4 sm:px-6 sm:py-4">{children}</div>
+        )}
         {footer && (
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 border-t border-border px-4 py-3 sm:px-6 sm:py-4">
             {footer}

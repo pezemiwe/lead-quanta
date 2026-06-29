@@ -133,16 +133,11 @@ const CONCENTRATION = [
   },
 ];
 
-// Stage distribution
-const stage1 = BOOK_INSTRUMENTS.filter(
-  (i) => i.impairmentStage === "Stage 1",
+// Credit quality distribution
+const fvtplCount = BOOK_INSTRUMENTS.filter(
+  (i) => i.classification === "FVTPL",
 ).length;
-const stage2 = BOOK_INSTRUMENTS.filter(
-  (i) => i.impairmentStage === "Stage 2",
-).length;
-const stage3 = BOOK_INSTRUMENTS.filter(
-  (i) => i.impairmentStage === "Stage 3",
-).length;
+const ociReserve = BOOK_COMPUTED.totals.totalOCIReserveNGN;
 
 const STRESS = [
   {
@@ -237,14 +232,14 @@ export function RiskAnalytics() {
             sub: "weighted avg",
           },
           {
-            label: "Stage 2 Instruments",
-            value: String(stage2),
-            sub: `${fmtPct(stage2 / BOOK_INSTRUMENTS.length)} of book`,
+            label: "FVTPL Instruments",
+            value: String(fvtplCount),
+            sub: `${fmtPct(fvtplCount / BOOK_INSTRUMENTS.length)} mark-to-market`,
           },
           {
-            label: "Stage 3 Instruments",
-            value: String(stage3),
-            sub: `${fmtPct(stage3 / BOOK_INSTRUMENTS.length)} of book`,
+            label: "OCI Reserve",
+            value: fmtCompact(Math.abs(ociReserve)),
+            sub: ociReserve >= 0 ? "Unrealised gain" : "Unrealised loss",
           },
         ].map((k) => (
           <div
@@ -376,41 +371,49 @@ export function RiskAnalytics() {
         </table>
       </div>
 
-      {/* ECL stage distribution */}
+      {/* Credit quality distribution */}
       <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
         <h2 className="mb-4 text-sm font-semibold text-dark-gray">
-          ECL Stage Distribution
+          Credit Quality Distribution
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {[
             {
-              stage: "Stage 1",
-              count: stage1,
-              ecl: totals.totalECLNGN * 0.15,
+              label: "Sovereign / Gov't",
+              count: BOOK_INSTRUMENTS.filter(
+                (i) =>
+                  i.issuer?.toLowerCase().includes("fgn") ||
+                  i.issuer?.toLowerCase().includes("cbn") ||
+                  i.issuer?.toLowerCase().includes("federal"),
+              ).length,
               color: "text-success",
+              note: "Zero credit risk weight",
             },
             {
-              stage: "Stage 2",
-              count: stage2,
-              ecl: totals.totalECLNGN * 0.35,
-              color: "text-yellow-600",
+              label: "Investment Grade",
+              count: BOOK_INSTRUMENTS.filter(
+                (i) =>
+                  !i.issuer?.toLowerCase().includes("fgn") &&
+                  !i.issuer?.toLowerCase().includes("cbn") &&
+                  i.classification !== "FVTPL",
+              ).length,
+              color: "text-sky-600",
+              note: "Bank & corporate bonds",
             },
             {
-              stage: "Stage 3",
-              count: stage3,
-              ecl: totals.totalECLNGN * 0.5,
-              color: "text-danger",
+              label: "Mark-to-Market",
+              count: fvtplCount,
+              color: "text-primary",
+              note: "FVTPL / equities",
             },
           ].map((s) => (
-            <div key={s.stage} className="rounded-lg border border-border p-4">
-              <p className={`text-sm font-semibold ${s.color}`}>{s.stage}</p>
+            <div key={s.label} className="rounded-lg border border-border p-4">
+              <p className={`text-sm font-semibold ${s.color}`}>{s.label}</p>
               <p className="mt-1 text-2xl font-bold text-dark-gray">
                 {s.count}
               </p>
               <p className="text-xs text-gray-400">instruments</p>
-              <p className="mt-2 text-xs text-gray-500">
-                ECL: {fmtCompact(s.ecl)}
-              </p>
+              <p className="mt-2 text-xs text-gray-500">{s.note}</p>
             </div>
           ))}
         </div>

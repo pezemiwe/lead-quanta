@@ -38,8 +38,26 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Hide scrollbars globally while preserving scroll functionality */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Use system fonts for the Naira sign (₦) since Google Fonts subsets may omit it */
+@font-face {
+  font-family: "Inter";
+  src: local("Segoe UI"), local("Arial Unicode MS"), local("Noto Sans"),
+    local("DejaVu Sans");
+  unicode-range: U+20A6; /* Naira Sign */
+}
+
 :root {
-  font-family: "Inter", system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Inter", "Segoe UI", system-ui, Avenir, Helvetica, Arial,
+    sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color-scheme: light;

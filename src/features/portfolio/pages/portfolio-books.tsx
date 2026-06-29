@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   FolderOpen,
   Plus,
@@ -13,6 +13,7 @@ import {
   type Portfolio,
   type PortfolioType,
   type PortfolioStatus,
+  type PortfolioMandate,
 } from "../portfolio-registry";
 
 /* -------------------------------------------------------
@@ -44,6 +45,7 @@ interface FormValues {
   mandatedBy: string;
   strategy: string;
   status: PortfolioStatus;
+  mandate: PortfolioMandate | "";
 }
 
 const BLANK: FormValues = {
@@ -55,6 +57,7 @@ const BLANK: FormValues = {
   mandatedBy: "",
   strategy: "",
   status: "Active",
+  mandate: "",
 };
 
 const CURRENCIES = ["NGN", "USD", "EUR", "GBP", "JPY", "ZAR"];
@@ -202,25 +205,47 @@ function PortfolioModal({
             />
           </div>
 
-          {/* Status */}
-          <div>
-            <label className="block text-xs font-medium text-dark-gray/70 mb-1">
-              Status
-            </label>
-            <select
-              value={form.status}
-              onChange={(e) =>
-                field("status", e.target.value as PortfolioStatus)
-              }
-              className="w-full rounded-lg border border-border px-3 py-2 text-sm text-dark-gray bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
-            >
-              {STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Status */}
+            <div>
+              <label className="block text-xs font-medium text-dark-gray/70 mb-1">
+                Status
+              </label>
+              <select
+                value={form.status}
+                onChange={(e) => field("status", e.target.value as PortfolioStatus)}
+                className="w-full rounded-lg border border-border px-3 py-2 text-sm text-dark-gray bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                {STATUSES.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Mandate type */}
+            <div>
+              <label className="block text-xs font-medium text-dark-gray/70 mb-1">
+                Mandate Type
+              </label>
+              <select
+                value={form.mandate}
+                onChange={(e) => field("mandate", e.target.value as PortfolioMandate | "")}
+                className="w-full rounded-lg border border-border px-3 py-2 text-sm text-dark-gray bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                <option value="">Not specified</option>
+                <option value="Discretionary">Discretionary</option>
+                <option value="Non-Discretionary">Non-Discretionary</option>
+              </select>
+            </div>
           </div>
+
+          {form.mandate && (
+            <div className="rounded-lg border border-border bg-gray-50 p-3 text-xs text-gray-600">
+              {form.mandate === "Discretionary"
+                ? "Discretionary — the Portfolio Manager may trade without prior client approval on each individual transaction. The PM has full authority to execute within the agreed mandate."
+                : "Non-Discretionary — each investment decision must be approved by the client or investment committee before execution. The PM advises but does not act independently."}
+            </div>
+          )}
 
           {/* actions */}
           <div className="flex justify-end gap-3 pt-2">
@@ -344,6 +369,29 @@ function DetailPanel({
             <p className="text-dark-gray/80">{portfolio.strategy}</p>
           </div>
         )}
+        {portfolio.mandate && (
+          <div>
+            <p className="text-xs font-semibold uppercase text-dark-gray/40 tracking-wide mb-1">
+              Mandate Type
+            </p>
+            <div className="flex items-center gap-2">
+              <span
+                className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                  portfolio.mandate === "Discretionary"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-purple-100 text-purple-700"
+                }`}
+              >
+                {portfolio.mandate}
+              </span>
+              <span className="text-xs text-dark-gray/50">
+                {portfolio.mandate === "Discretionary"
+                  ? "PM may trade without prior client approval"
+                  : "Each decision requires committee sign-off"}
+              </span>
+            </div>
+          </div>
+        )}
         <div>
           <p className="text-xs font-semibold uppercase text-dark-gray/40 tracking-wide mb-1">
             Created
@@ -385,14 +433,16 @@ export function PortfolioBooks() {
   const [confirmDelete, setConfirmDelete] = useState<Portfolio | null>(null);
 
   function handleCreate(v: FormValues) {
-    const newP = addPortfolio(v);
+    const patch = { ...v, mandate: v.mandate || undefined };
+    const newP = addPortfolio(patch);
     setSelected(newP);
   }
 
   function handleEdit(v: FormValues) {
     if (!editing) return;
-    updatePortfolio(editing.id, v);
-    setSelected((prev) => (prev?.id === editing.id ? { ...prev, ...v } : prev));
+    const patch = { ...v, mandate: v.mandate || undefined };
+    updatePortfolio(editing.id, patch);
+    setSelected((prev) => (prev?.id === editing.id ? { ...prev, ...patch } : prev));
   }
 
   function handleDelete(p: Portfolio) {
@@ -555,6 +605,7 @@ export function PortfolioBooks() {
             mandatedBy: editing.mandatedBy,
             strategy: editing.strategy,
             status: editing.status,
+            mandate: editing.mandate ?? "",
           }}
           onSave={handleEdit}
           onClose={() => setEditing(null)}

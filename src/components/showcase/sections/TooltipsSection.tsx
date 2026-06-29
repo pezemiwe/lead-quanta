@@ -17,14 +17,13 @@ export function TooltipsSection() {
         <Tooltip
           content={
             <span>
-              ECL = <strong>PD</strong> × <strong>LGD</strong> ×{" "}
-              <strong>EAD</strong>
+              Duration = Σ(<strong>t × PV(CF)</strong>) ÷ <strong>Price</strong>
             </span>
           }
           placement="bottom"
         >
           <Badge variant="brand" className="cursor-help">
-            ECL Formula ℹ
+            Duration Formula ℹ
           </Badge>
         </Tooltip>
       </Row>

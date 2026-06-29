@@ -1,4 +1,4 @@
-import { AlertTriangle, Bell, CheckCircle2 } from "lucide-react";
+﻿import { AlertTriangle, Bell, CheckCircle2 } from "lucide-react";
 import { useMarketData } from "../store";
 import { SectionCard } from "../../../components/shared/section-card";
 import { fmtBps, fmtPct, fmtTenor } from "../utils";

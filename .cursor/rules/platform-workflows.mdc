@@ -1,0 +1,91 @@
+---
+description: Deal slip lifecycle, settlement flow, register rules, and cross-cutting system feature workflows
+alwaysApply: true
+---
+
+# Lead Quanta Workflows
+
+Critical workflow details for build. See **platform-personas** for permissions and journeys.
+
+## End-to-end system features
+
+| Feature | Trigger | Journey | System output | Primary owner |
+|---------|---------|---------|---------------|---------------|
+| **Manual valuation** | Periodic or event-driven valuation input | Capture valuation input and supporting evidence. Reviewer approves input where needed. | Updated valuation record with audit trail | Valuation reviewer (Risk / Finance) |
+| **Maturity, sale and rollover** | Maturity alert, sale decision, or rollover instruction | Notify users. Trader raises maturity action, sale slip, or rollover deal slip. Approvals and settlement follow normal workflow. | Closed, matured, sold, partially sold, or rolled over position; new deal slip where applicable | Trader, Back Office, Finance |
+| **Limits and compliance monitoring** | Pre-trade, post-trade, daily batch, or portfolio change | Measure exposure by counterparty, issuer, group, rating, asset class, sector, currency, fund, regulatory rule. Route breaches. | Within limit, watch level, breach, override approved, or remediation pending | Middle Office, Risk, Compliance |
+| **Accounting and GL interface** | Settlement confirmed, accrual run, valuation run, maturity, or disposal | Finance validates classification and journal output. System exports posting file to ERP/GL. Reconcile subledger to ledger. | Posted journal file, reconciliation report, exception list | Finance |
+| **Dashboards and reports** | Daily cycle, period end, or committee reporting | Aggregate blotter, register, maturities, income, performance, exposure, limits, exceptions, accounting status. | Trader dashboard, PM dashboard, Head of Investments dashboard, ALCO pack | System |
+| **Audit trail and user administration** | Any user or system action | Record user, action, timestamp, old/new value, approval step, documents, reason. Admin maintains roles and workflows. | Audit log, access log, workflow configuration, evidence pack | System Admin, Internal Audit |
+
+## 6.1 Deal slip status flow
+
+Implement as a state machine. Enforce system rules at each transition.
+
+| Status | Meaning | System rule |
+|--------|---------|-------------|
+| **Draft** | Trader preparing deal slip | Trader can edit. Reviewers cannot approve. |
+| **Submitted** | Submitted for review | Record locked except via returned-amendment workflow. |
+| **Under Review** | Middle Office, Risk, or Compliance reviewing | Capture comments, queries, clearance. |
+| **Returned for Amendment** | Correction or missing evidence required | Trader edits and resubmits. Prior version stays in audit log. |
+| **Rejected** | Trade not approved | No settlement instruction can be created. |
+| **Approved** | Approver approved the deal | Back Office settlement queue entry created. |
+| **Pending Settlement** | Settlement instruction and payment validation in progress | Cannot become active investment yet. |
+| **Settled** | Cash, documents, confirmations match approved deal slip | Investment register update triggered. |
+| **Active** | Position in investment register | Accrual, valuation, maturity, limit monitoring run. |
+| **Matured, Sold or Rolled Over** | Lifecycle event closed or transformed holding | Income, principal, register status updated. |
+
+### Status transition summary
+
+```
+Draft → Submitted → Under Review → Approved → Pending Settlement → Settled → Active
+                      ↓              ↓
+              Returned for Amendment  Rejected
+                      ↓
+                 (resubmit)
+Active → Matured / Sold / Rolled Over
+```
+
+## 6.2 Settlement confirmation flow
+
+| Step | Action | Owner | Control rule |
+|------|--------|-------|--------------|
+| 1 | Approved deal slip routed to Back Office settlement queue | System | Only approved deals enter queue |
+| 2 | Back Office reviews settlement details and generates settlement instruction | Back Office Maker | Must match approved economics and settlement account |
+| 3 | Settlement instruction checked | Back Office Checker | Maker-checker mandatory |
+| 4 | Payment or market settlement processed | Finance, Treasury Ops, bank signatories, or custodian | Payment release must use approved settlement instruction |
+| 5 | Cash movement and external confirmation matched | Back Office | Match amount, currency, value date, counterparty, broker, custodian, documents |
+| 6 | Exception created on mismatch | Back Office, Middle Office | Wrong amount, late settlement, missing confirmation, wrong account, failed settlement |
+| 7 | Back Office marks settlement status | Back Office | Settled, partially settled, failed, reversed, or settled with exception |
+| 8 | System updates investment register | System | **Only after settlement confirmation.** No confirmation = no active holding. |
+
+## 6.3 Investment register update rules
+
+| Rule | When it applies | System behaviour |
+|------|-----------------|------------------|
+| **Create active holding** | Only after settlement confirmed | Create official position with active status |
+| **Partial settlement** | Only part of transaction settles | Active position for settled amount; exception for remaining balance |
+| **Failed settlement** | Settlement does not occur | No active position. Deal status failed or cancelled |
+| **Sale or disposal** | After disposal approval and settlement | Reduce or close position; compute realised gain/loss |
+| **Rollover** | Maturing position reinvested | Old record marked matured/rolled over; new deal slip and new position created |
+| **Manual amendment** | Controlled amendment workflow only | Require reason, approval, audit trail. Block direct overwrite |
+
+## Build enforcement
+
+- Deal slip status drives which actions each persona can perform — align with access matrix and journeys.
+- Never skip settlement confirmation before register update.
+- Partial and failed settlements must create trackable exceptions, not silent partial state.
+- Rollover always creates a new deal slip + new position; never mutate settled history in place.
+
+## 7. Minimum deal slip fields by asset class
+
+Deal slip forms must be **dynamic by asset class**. Block submission until all mandatory fields for the selected class are populated.
+
+| Asset class | Mandatory deal slip fields |
+|-------------|---------------------------|
+| **Fixed deposits and call deposits** | Counterparty, principal, rate, tenor, trade date, value date, maturity date, day count, expected interest, settlement account, rollover instruction |
+| **Treasury bills and commercial papers** | Issuer, counterparty, face value, purchase price, discount rate or yield, maturity value, tenor, rating, settlement date, maturity date |
+| **Bonds** | Issuer, ISIN, coupon, coupon frequency, clean price, accrued interest, dirty price, yield, settlement value, maturity date, duration, DV01 |
+| **Equities** | Issuer, ticker, broker, quantity, price, fees, trade date, settlement date, settlement value, CSCS or custodian details |
+| **Mutual funds** | Fund manager, fund name, units, NAV, subscription amount, redemption amount, fees, valuation date, settlement account |
+| **Alternative investments** | Fund or asset name, commitment, capital call, distribution, NAV, valuation basis, approval memo, exit terms, legal documents |

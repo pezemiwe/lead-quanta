@@ -1,9 +1,13 @@
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { Logo } from "./logo";
 import { UserMenu } from "./user-menu";
+import { ReconciliationNotifications } from "./reconciliation-notifications";
+import { NotificationBell } from "./notification-bell";
+import { FmdqTicker } from "./fmdq-ticker";
 import { usePersona } from "../../context/persona";
+import { useEntity, type EntityId } from "../../context/entity";
 
 export interface ModuleNavItem {
   id: string;
@@ -26,6 +30,75 @@ interface ModuleShellProps {
   /** Mapping from group key -> human-readable label. */
   groups: Record<string, string>;
   children: ReactNode;
+}
+
+function EntitySelector() {
+  const { entity, setEntityId, entities } = useEntity();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative hidden sm:block">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1.5 rounded-full border border-border bg-surface-muted px-3 py-1 text-xs font-semibold text-dark-gray/70 transition hover:bg-pale-red hover:text-primary"
+        style={{ borderColor: entity.colour + "33" }}
+      >
+        <span
+          className="h-1.5 w-1.5 rounded-full shrink-0"
+          style={{ background: entity.colour }}
+        />
+        {entity.shortName}
+        <ChevronDown className="h-3 w-3 opacity-60" />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full z-50 mt-1 w-64 overflow-hidden rounded-xl border border-border bg-surface shadow-[0_8px_32px_rgba(0,0,0,0.10)]">
+          <div className="px-3 py-2 border-b border-border">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-dark-gray/40">
+              Select Entity
+            </p>
+          </div>
+          {entities.map((e) => (
+            <button
+              key={e.id}
+              onClick={() => {
+                setEntityId(e.id as EntityId);
+                setOpen(false);
+              }}
+              className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-surface-muted ${
+                entity.id === e.id ? "bg-pale-red" : ""
+              }`}
+            >
+              <span
+                className="h-2 w-2 shrink-0 rounded-full"
+                style={{ background: e.colour }}
+              />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-dark-gray truncate">
+                  {e.shortName}
+                  {entity.id === e.id && (
+                    <span className="ml-1.5 text-[9px] text-primary">✓</span>
+                  )}
+                </p>
+                <p className="text-[10px] text-dark-gray/45 truncate">
+                  {e.regulator} · {e.name.split("—")[0].trim()}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 /** Standard chrome (header + grouped sidebar + content area) used by
@@ -96,6 +169,8 @@ export function ModuleShell({
 
   return (
     <div className="flex h-screen flex-col bg-surface-muted font-sans text-dark-gray overflow-hidden">
+      {/* ── FMDQ Live Rate Ticker ── */}
+      <FmdqTicker />
       {/* ── Header ── */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-surface px-3 sm:px-5 z-20">
         <div className="flex items-center gap-2 sm:gap-3">
@@ -109,7 +184,7 @@ export function ModuleShell({
           </button>
           <Logo collapsed />
           <div className="h-4 w-px bg-border" />
-          <span className="max-w-[160px] truncate text-xs font-semibold text-dark-gray sm:max-w-none">
+          <span className="max-w-40 truncate text-xs font-semibold text-dark-gray sm:max-w-none">
             {moduleLabel}
           </span>
           {badge && (
@@ -117,15 +192,20 @@ export function ModuleShell({
               {badge}
             </span>
           )}
+          <EntitySelector />
         </div>
-        <UserMenu
-          persona={persona}
-          onSwitchModules={() => navigate("/modules")}
-          onLogout={() => {
-            setPersona({ name: "", role: "", avatar: "" });
-            navigate("/");
-          }}
-        />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <NotificationBell />
+          <ReconciliationNotifications />
+          <UserMenu
+            persona={persona}
+            onSwitchModules={() => navigate("/modules")}
+            onLogout={() => {
+              setPersona({ name: "", role: "", avatar: "" });
+              navigate("/");
+            }}
+          />
+        </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">

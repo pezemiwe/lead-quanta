@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+﻿import * as XLSX from "xlsx";
 import { useState, useMemo } from "react";
 import { Download, Search, Filter } from "lucide-react";
 import { SectionCard } from "../../../components/shared/section-card";
@@ -9,9 +9,8 @@ import { useGovernance, type AuditEntry } from "../../../context/governance";
 const MODULE_FILTER = [
   "All",
   "Deals",
-  "IFRS 9",
-  "Accounting",
   "Valuation",
+  "Accounting",
   "Portfolio",
   "Compliance",
   "Reporting",

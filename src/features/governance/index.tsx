@@ -1,13 +1,13 @@
 import { useParams } from "react-router-dom";
 import {
-  ShieldCheck,
   Users,
   CheckCircle2,
   ClipboardList,
   BarChart2,
   AlertTriangle,
   Plug,
-  Activity,
+  FileWarning,
+  Settings2,
 } from "lucide-react";
 import {
   ModuleShell,
@@ -19,6 +19,8 @@ import { AuditLog } from "./pages/audit-log";
 import { InvestmentLimits } from "./pages/investment-limits";
 import { ComplianceMonitoring } from "./pages/compliance";
 import { ExternalIntegrations } from "./pages/integrations";
+import { WaiverRegister } from "./pages/waiver-register";
+import { AdminLimits } from "./pages/admin-limits";
 
 export type GovernancePage =
   | "access-control"
@@ -26,7 +28,9 @@ export type GovernancePage =
   | "audit-log"
   | "limits"
   | "compliance"
-  | "integrations";
+  | "integrations"
+  | "waiver-register"
+  | "admin-limits";
 
 const NAV: ModuleNavItem[] = [
   {
@@ -60,6 +64,18 @@ const NAV: ModuleNavItem[] = [
     group: "controls",
   },
   {
+    id: "waiver-register",
+    label: "Waiver Register",
+    icon: <FileWarning className="h-4 w-4" />,
+    group: "controls",
+  },
+  {
+    id: "admin-limits",
+    label: "Limit Configuration",
+    icon: <Settings2 className="h-4 w-4" />,
+    group: "admin",
+  },
+  {
     id: "integrations",
     label: "Integrations",
     icon: <Plug className="h-4 w-4" />,
@@ -70,6 +86,7 @@ const NAV: ModuleNavItem[] = [
 const GROUPS: Record<string, string> = {
   rbac: "Access & Approvals",
   controls: "Controls & Compliance",
+  admin: "Administration",
   systems: "Systems",
 };
 
@@ -87,6 +104,10 @@ function PageBody({ page }: { page: GovernancePage }) {
       return <ComplianceMonitoring />;
     case "integrations":
       return <ExternalIntegrations />;
+    case "waiver-register":
+      return <WaiverRegister />;
+    case "admin-limits":
+      return <AdminLimits />;
   }
 }
 

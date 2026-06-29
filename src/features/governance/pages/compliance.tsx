@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   AlertTriangle,
   CheckCircle,
@@ -68,11 +68,11 @@ const COMPLIANCE_ITEMS: ComplianceItem[] = [
   {
     id: "c005",
     category: "Reporting",
-    check: "IFRS 9 ECL Disclosure (IFRS 7)",
-    regulation: "IFRS 7 / IFRS 9",
+    check: "IFRS 7 Credit Risk Disclosure",
+    regulation: "IFRS 7",
     status: "compliant",
     detail:
-      "H1 2026 ECL disclosures prepared. Staging migration table and sensitivity analysis complete.",
+      "H1 2026 IFRS 7 credit risk disclosures prepared. Credit quality analysis, counterparty exposure, and fair value hierarchy tables complete.",
     owner: "Chidi Okafor",
   },
   {
@@ -111,7 +111,7 @@ const COMPLIANCE_ITEMS: ComplianceItem[] = [
     regulation: "NAICOM Internal Audit Circular",
     status: "pending",
     detail:
-      "Q2 2026 audit scheduled for 15 June 2026. Scope: deal capture, valuation, ECL staging.",
+      "Q2 2026 audit scheduled for 15 June 2026. Scope: deal capture, valuation overrides, and settlement reconciliation.",
     dueDate: "2026-06-15",
     owner: "Tunde Bello",
   },

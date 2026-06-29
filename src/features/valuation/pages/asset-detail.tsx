@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Trash2, AlertCircle } from "lucide-react";
 import { useValuation } from "../store";
@@ -12,7 +12,6 @@ import {
   fmtDate,
   CLASSIFICATION_BADGE,
   CLASSIFICATION_LABEL,
-  STAGE_BADGE,
 } from "../utils";
 import type { Instrument } from "../engine/types";
 
@@ -116,13 +115,6 @@ export function ValuationAssetDetail() {
             <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
               {inst.ifrs13Level}
             </span>
-            {inst.impairmentStage && inst.impairmentStage !== "N/A" && (
-              <span
-                className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STAGE_BADGE[inst.impairmentStage]}`}
-              >
-                {inst.impairmentStage}
-              </span>
-            )}
           </div>
           <p className="mt-1.5 text-sm text-gray-500">
             {inst.name} · {inst.instrumentType} · {inst.issuer}
@@ -654,12 +646,6 @@ function IncomeTab({
             mono
             emphasis
           />
-          <Row
-            label="ECL Provision"
-            value={fmtMoney(inst.eclProvision ?? 0, ccy)}
-            mono
-          />
-          <Row label="Impairment Stage" value={inst.impairmentStage ?? "N/A"} />
         </SectionCard>
       )}
 
@@ -678,11 +664,6 @@ function IncomeTab({
             <Row
               label="Accrued Interest (today)"
               value={fmtMoney(val.accruedInterest, ccy)}
-              mono
-            />
-            <Row
-              label="ECL Charge (P&L)"
-              value={fmtMoney(-(inst.eclProvision ?? 0), ccy)}
               mono
             />
           </SectionCard>
@@ -718,10 +699,6 @@ function IncomeTab({
                 </span>
               }
             />
-            <Row
-              label="Impairment Stage"
-              value={inst.impairmentStage ?? "N/A"}
-            />
           </SectionCard>
         </>
       )}
@@ -729,8 +706,7 @@ function IncomeTab({
       {cls === "FVTPL" && (
         <SectionCard title="P&L Summary — FVTPL">
           <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
-            FVTPL — ALL fair value movements hit P&L immediately. No OCI. No ECL
-            required.
+            FVTPL — ALL fair value movements hit P&L immediately. No OCI reserve.
           </p>
           <Row
             label="Purchase Price"
@@ -941,12 +917,6 @@ function AuditTab({
       <Row label="Last Valuation Run" value="2026-05-28 08:00 AM" mono />
       <Row label="Valuation Model" value={valuationModel} />
       <Row label="IFRS 13 Level" value={inst.ifrs13Level} />
-      <Row label="Impairment Stage" value={inst.impairmentStage ?? "N/A"} />
-      <Row
-        label="ECL Provision"
-        value={fmtMoney(inst.eclProvision ?? 0, ccy)}
-        mono
-      />
       <Row
         label="Annual EIR Income"
         value={fmtMoney(val.annualEIRIncome, ccy)}

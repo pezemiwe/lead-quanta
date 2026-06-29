@@ -15,24 +15,24 @@ export function StatCardsSection() {
           variant="default"
         />
         <StatCard
-          title="Total ECL Charge"
-          value="₦1.84B"
-          trend={{ direction: "down", label: "−2.1% QoQ" }}
+          title="Active Deals"
+          value="24"
+          trend={{ direction: "up", label: "+4 this week" }}
           icon={<AlertTriangle className="h-5 w-5" />}
           variant="highlight"
         />
         <StatCard
-          title="Stage 3 Ratio"
-          value="4.72%"
-          subtitle="above 5% triggers review"
+          title="Weighted Avg Yield"
+          value="18.42%"
+          subtitle="portfolio weighted"
           trend={{ direction: "up", label: "+0.3pp" }}
           icon={<TrendingUp className="h-5 w-5" />}
           variant="warning"
         />
         <StatCard
-          title="Defaulted Loans"
-          value="₦672M"
-          trend={{ direction: "up", label: "+12.4%" }}
+          title="Pending Approvals"
+          value="6"
+          trend={{ direction: "up", label: "2 high priority" }}
           icon={<User className="h-5 w-5" />}
           variant="danger"
         />

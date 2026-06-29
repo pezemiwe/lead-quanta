@@ -1,4 +1,4 @@
-import { useDurationRisk } from "../store";
+﻿import { useDurationRisk } from "../store";
 import { SectionCard } from "../../../components/shared/section-card";
 import { EmptyPortfolio } from "../components/empty-portfolio";
 import { fmtCompactNGN, fmtBps } from "../utils";

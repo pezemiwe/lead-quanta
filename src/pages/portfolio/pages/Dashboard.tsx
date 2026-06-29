@@ -77,16 +77,16 @@ export function PortfolioDashboard({ persona }: Props) {
     {
       label: "Weighted Avg Yield",
       value: fmtPct(weightedYield),
-      change: fmtCompact(totals.totalECLNGN),
+      change: fmtCompact(totals.totalOCIReserveNGN),
       positive: true,
-      sub: "ECL provision",
+      sub: "OCI reserve",
       icon: <Percent className="h-5 w-5" />,
       accent: "#1E3A5F",
     },
     {
       label: "Total Instruments",
       value: String(totals.instruments),
-      change: `${byClassification.length} IFRS 9 classes`,
+      change: `${byClassification.length} IFRS 13 classes`,
       positive: true,
       sub: "across the book",
       icon: <BarChart2 className="h-5 w-5" />,
@@ -165,7 +165,7 @@ export function PortfolioDashboard({ persona }: Props) {
               <XAxis dataKey="bucket" tick={{ fontSize: 10 }} />
               <YAxis
                 tick={{ fontSize: 10 }}
-                tickFormatter={(v: number) => `?${(v / 1e9).toFixed(0)}B`}
+                tickFormatter={(v: number) => `₦${(v / 1e9).toFixed(0)}B`}
               />
               <Tooltip
                 formatter={
@@ -313,41 +313,32 @@ export function PortfolioDashboard({ persona }: Props) {
         </div>
       </div>
 
-      {/* ECL summary */}
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex flex-wrap gap-6">
+      {/* Credit quality summary */}
+      <div className="rounded-xl border border-sky-200 bg-sky-50 p-4 flex flex-wrap gap-6">
         <div>
-          <p className="text-xs font-semibold text-amber-800">
-            IFRS 9 ECL Summary
+          <p className="text-xs font-semibold text-sky-800">
+            OCI Reserve (FVOCI)
           </p>
-          <p className="mt-0.5 text-xs text-amber-700">
-            Total provision:{" "}
-            <span className="font-bold">{fmtCompact(totals.totalECLNGN)}</span>{" "}
-            Coverage:{" "}
+          <p className="mt-0.5 text-xs text-sky-700">
+            Unrealised:{" "}
+            <span className="font-bold">{fmtCompact(totals.totalOCIReserveNGN)}</span>{" "}
+            Share:{" "}
             <span className="font-bold">
-              {fmtPct(totals.totalECLNGN / totals.totalBSValueNGN)}
+              {fmtPct(Math.abs(totals.totalOCIReserveNGN) / totals.totalBSValueNGN)}
             </span>
           </p>
         </div>
         <div>
-          <p className="text-xs font-semibold text-amber-800">
-            Stage Distribution
+          <p className="text-xs font-semibold text-sky-800">
+            Classification Mix
           </p>
-          <p className="mt-0.5 text-xs text-amber-700">
-            {
-              BOOK_INSTRUMENTS.filter((i) => i.impairmentStage === "Stage 1")
-                .length
-            }{" "}
-            Stage 1{" "}
-            {
-              BOOK_INSTRUMENTS.filter((i) => i.impairmentStage === "Stage 2")
-                .length
-            }{" "}
-            Stage 2{" "}
-            {
-              BOOK_INSTRUMENTS.filter((i) => i.impairmentStage === "Stage 3")
-                .length
-            }{" "}
-            Stage 3
+          <p className="mt-0.5 text-xs text-sky-700">
+            {BOOK_INSTRUMENTS.filter((i) => i.classification === "AC").length}{" "}
+            AC ·{" "}
+            {BOOK_INSTRUMENTS.filter((i) => i.classification === "FVOCI").length}{" "}
+            FVOCI ·{" "}
+            {BOOK_INSTRUMENTS.filter((i) => i.classification === "FVTPL").length}{" "}
+            FVTPL
           </p>
         </div>
         <div>

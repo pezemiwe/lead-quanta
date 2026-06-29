@@ -1,4 +1,4 @@
-import {
+﻿import {
   BOOK_COMPUTED,
   BOOK_INSTRUMENTS,
   BOOK_VALUATIONS,
@@ -14,25 +14,25 @@ const totals = BOOK_COMPUTED.totals;
 const bySector = BOOK_COMPUTED.bySector;
 const matProfile = BOOK_COMPUTED.maturityProfile;
 
-// IFRS 7 credit risk: by stage
-const stage1Insts = BOOK_INSTRUMENTS.filter(
-  (i) => i.impairmentStage === "Stage 1",
-);
-const stage2Insts = BOOK_INSTRUMENTS.filter(
-  (i) => i.impairmentStage === "Stage 2",
-);
-const stage3Insts = BOOK_INSTRUMENTS.filter(
-  (i) => i.impairmentStage === "Stage 3",
-);
-
-const bsvByStage = (stage: string) =>
-  BOOK_INSTRUMENTS.filter((i) => i.impairmentStage === stage).reduce(
+// IFRS 7 credit risk: by classification
+const bsvByClass = (cls: string) =>
+  BOOK_INSTRUMENTS.filter((i) => i.classification === cls).reduce(
     (s, inst) => {
       const idx = BOOK_INSTRUMENTS.indexOf(inst);
       return s + (BOOK_VALUATIONS[idx]?.balanceSheetValueNGN ?? 0);
     },
     0,
   );
+
+const sovereignBsv = BOOK_INSTRUMENTS.filter(
+  (i) =>
+    i.issuer?.toLowerCase().includes("fgn") ||
+    i.issuer?.toLowerCase().includes("cbn") ||
+    i.issuer?.toLowerCase().includes("federal"),
+).reduce((s, inst) => {
+  const idx = BOOK_INSTRUMENTS.indexOf(inst);
+  return s + (BOOK_VALUATIONS[idx]?.balanceSheetValueNGN ?? 0);
+}, 0);
 
 // market risk: IFRS 7 sensitivity
 const totalDV01 = BOOK_VALUATIONS.reduce((s, v) => s + v.risk.dv01, 0);
@@ -109,54 +109,52 @@ export function IFRS7Disclosures() {
         <div className="grid grid-cols-3 gap-4">
           {[
             {
-              stage: "Stage 1 — Performing",
-              count: stage1Insts.length,
-              bsv: bsvByStage("Stage 1"),
+              label: "Sovereign / Government",
+              bsv: sovereignBsv,
               color: "text-success",
+              note: "FGN bonds · CBN T-bills",
             },
             {
-              stage: "Stage 2 — Underperforming",
-              count: stage2Insts.length,
-              bsv: bsvByStage("Stage 2"),
-              color: "text-yellow-600",
+              label: "Amortised Cost (AC)",
+              bsv: bsvByClass("AC"),
+              color: "text-sky-600",
+              note: "Held-to-collect instruments",
             },
             {
-              stage: "Stage 3 — Non-Performing",
-              count: stage3Insts.length,
-              bsv: bsvByStage("Stage 3"),
-              color: "text-danger",
+              label: "Fair Value (FVOCI / FVTPL)",
+              bsv: bsvByClass("FVOCI") + bsvByClass("FVTPL"),
+              color: "text-primary",
+              note: "Marked-to-market exposure",
             },
           ].map((s) => (
             <div
-              key={s.stage}
+              key={s.label}
               className="rounded-xl border border-border bg-surface p-4 shadow-sm"
             >
-              <p className={`text-xs font-semibold ${s.color}`}>{s.stage}</p>
+              <p className={`text-xs font-semibold ${s.color}`}>{s.label}</p>
               <p className="mt-2 text-xl font-bold text-dark-gray">
-                {s.count} instruments
-              </p>
-              <p className="text-sm font-semibold text-gray-500">
                 {fmtCompact(s.bsv)}
               </p>
               <p className="text-xs text-gray-400">
                 {fmtPct(s.bsv / totals.totalBSValueNGN)} of book
               </p>
+              <p className="mt-1 text-xs text-gray-500">{s.note}</p>
             </div>
           ))}
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {[
             {
-              label: "Total ECL Provision",
-              value: fmtCompact(totals.totalECLNGN),
+              label: "Sovereign Holdings",
+              value: fmtCompact(sovereignBsv),
             },
             {
-              label: "ECL / Book Value",
-              value: fmtPct(totals.totalECLNGN / totals.totalBSValueNGN),
+              label: "Sovereign % of Book",
+              value: fmtPct(sovereignBsv / totals.totalBSValueNGN),
             },
             {
-              label: "Net Book Value (after ECL)",
-              value: fmtCompact(totals.totalBSValueNGN - totals.totalECLNGN),
+              label: "OCI Reserve (FVOCI)",
+              value: fmtCompact(totals.totalOCIReserveNGN),
             },
           ].map((k) => (
             <div

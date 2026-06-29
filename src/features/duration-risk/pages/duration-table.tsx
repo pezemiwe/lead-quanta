@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, ArrowUpDown } from "lucide-react";
 import { useDurationRisk } from "../store";

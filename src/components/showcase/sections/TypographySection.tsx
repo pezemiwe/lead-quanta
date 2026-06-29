@@ -5,24 +5,24 @@ const TYPE_SCALE: [string, string, string][] = [
   [
     "Heading XL",
     "text-[28px] font-semibold tracking-tight",
-    "Impairment Analytics Dashboard",
+    "Investment Portfolio Dashboard",
   ],
   [
     "Heading LG",
     "text-xl font-semibold tracking-tight",
-    "ECL Calculation Report",
+    "Fair Value Valuation Report",
   ],
-  ["Heading MD", "text-base font-semibold", "Stage Distribution"],
-  ["Heading SM", "text-sm font-semibold", "Loan Portfolio Overview"],
+  ["Heading MD", "text-base font-semibold", "Portfolio by Classification"],
+  ["Heading SM", "text-sm font-semibold", "Investment Book Overview"],
   [
     "Body MD",
     "text-sm",
-    "The expected credit loss is calculated using a three-stage IFRS 9 model.",
+    "Fair values are computed using IFRS 13 hierarchy with real-time FMDQ market data.",
   ],
   [
     "Body SM",
     "text-xs",
-    "PD × LGD × EAD = ECL | Probability of Default at 12-month horizon.",
+    "Modified Duration × DV01 × Rate Shock = P&L Impact | FGN yield curve as at 28 May 2026.",
   ],
   [
     "Label",

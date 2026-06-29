@@ -1,4 +1,4 @@
-import {
+﻿import {
   Activity,
   AlertTriangle,
   ArrowDownRight,
@@ -66,8 +66,8 @@ export function MarketDataDashboard() {
           Market Data & Trend Analytics
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Live market state as at {asOf} � {history.alerts.length} active alert
-          {history.alerts.length === 1 ? "" : "s"} � source: {state.source}
+          Live market state as at {asOf} · {history.alerts.length} active alert
+          {history.alerts.length === 1 ? "" : "s"} · source: {state.source}
         </p>
       </div>
 
@@ -75,7 +75,7 @@ export function MarketDataDashboard() {
         <StatCard
           title="USD/NGN"
           value={fmtFx(usdNgn.rate)}
-          subtitle={`90-day ? ${fxChange >= 0 ? "+" : ""}${fxChange.toFixed(2)}%`}
+          subtitle={`90-day · ${fxChange >= 0 ? "+" : ""}${fxChange.toFixed(2)}%`}
           icon={<Coins className="h-4 w-4" />}
           variant="highlight"
           trend={{
@@ -86,7 +86,7 @@ export function MarketDataDashboard() {
         <StatCard
           title="10Y NGN Yield"
           value={fmtPct(ten.yield, 2)}
-          subtitle={`90-day ? ${fmtBps(tenChangeBps)}`}
+          subtitle={`90-day · ${fmtBps(tenChangeBps)}`}
           icon={<TrendingUp className="h-4 w-4" />}
           trend={{
             direction:
@@ -95,7 +95,7 @@ export function MarketDataDashboard() {
           }}
         />
         <StatCard
-          title="CBN MPR � Inflation"
+          title="CBN MPR & Inflation"
           value={`${fmtPct(snapshot.mpr, 2)} / ${fmtPct(snapshot.inflation, 2)}`}
           subtitle={
             snapshot.mpr - snapshot.inflation >= 0
@@ -125,7 +125,7 @@ export function MarketDataDashboard() {
       <div className="grid gap-6 xl:grid-cols-2">
         <SectionCard
           title="NGN Sovereign Yield Curve"
-          description={`Nelson-Siegel calibrated � ${NGN_TENORS.length} tenors`}
+          description={`Nelson-Siegel calibrated · ${NGN_TENORS.length} tenors`}
         >
           <div className="h-72">
             <ResponsiveContainer>
@@ -158,7 +158,7 @@ export function MarketDataDashboard() {
 
         <SectionCard
           title="USD/NGN 90-day"
-          description={`Latest: ?${fmtFx(usdNgn.rate)} per USD`}
+          description={`Latest: ₦${fmtFx(usdNgn.rate)} per USD`}
         >
           <div className="h-72">
             <ResponsiveContainer>
@@ -191,7 +191,7 @@ export function MarketDataDashboard() {
                   domain={["auto", "auto"]}
                   tickFormatter={(v: number) => v.toFixed(0)}
                 />
-                <Tooltip formatter={(v) => `?${fmtFx(Number(v ?? 0))}`} />
+                <Tooltip formatter={(v) => `₦${fmtFx(Number(v ?? 0))}`} />
                 <Area
                   type="monotone"
                   dataKey="rate"
@@ -206,7 +206,7 @@ export function MarketDataDashboard() {
       </div>
 
       <SectionCard
-        title="Portfolio Mark-to-Market � 90-day P&L Trajectory"
+        title="Portfolio Mark-to-Market — 90-day P&L Trajectory"
         description={`Base value: ${fmtCompactNGN(history.portfolioPnl[0].value)}`}
       >
         <div className="h-72">
@@ -234,10 +234,10 @@ export function MarketDataDashboard() {
               />
               <YAxis
                 tick={{ fontSize: 11 }}
-                tickFormatter={(v: number) => `?${v.toFixed(0)}B`}
+                tickFormatter={(v: number) => `₦${v.toFixed(0)}B`}
               />
               <Tooltip
-                formatter={(v) => `?${Number(v ?? 0).toFixed(2)}B`}
+                formatter={(v) => `₦${Number(v ?? 0).toFixed(2)}B`}
                 labelStyle={{ fontSize: 12 }}
               />
               <Line
@@ -289,7 +289,7 @@ export function MarketDataDashboard() {
                   <div>
                     <p className="font-medium text-dark-gray">{a.message}</p>
                     <p className="text-xs text-gray-500">
-                      {fmtPct(a.oldYield, 3)} ? {fmtPct(a.newYield, 3)} �{" "}
+                      {fmtPct(a.oldYield, 3)} → {fmtPct(a.newYield, 3)} ·{" "}
                       {a.timestamp}
                     </p>
                   </div>

@@ -116,7 +116,7 @@ const PlatformMockup = () => (
               style={{ background: "#F7941D" }}
             >
               <Activity style={{ width: 9, height: 9 }} />
-              Run ECL
+              Capture Deal
             </div>
           </div>
 
@@ -130,13 +130,13 @@ const PlatformMockup = () => (
                 note: "+8.3% YoY",
               },
               {
-                label: "ECL Charge",
-                value: "₦1.84B",
-                up: false,
-                note: "−2.1% QoQ",
+                label: "Active Deals",
+                value: "24",
+                up: true,
+                note: "3 pending review",
               },
-              { label: "Stage 3", value: "4.72%", up: true, note: "+0.3pp" },
-              { label: "Coverage", value: "73.4%", up: null, note: "Stable" },
+              { label: "Avg Yield", value: "17.4%", up: true, note: "+1.2pp" },
+              { label: "OCI Reserve", value: "₦83M", up: null, note: "FVOCI" },
             ].map((s, i) => (
               <div
                 key={i}
@@ -153,8 +153,8 @@ const PlatformMockup = () => (
                       s.up === null
                         ? "#1a1a1a66"
                         : s.up
-                          ? "#b91c1c"
-                          : "#0f766e",
+                          ? "#0f766e"
+                          : "#b91c1c",
                   }}
                 >
                   {s.note}
@@ -165,7 +165,7 @@ const PlatformMockup = () => (
 
           {/* Modules nav tabs */}
           <div className="flex gap-1">
-            {["Portfolio", "IFRS 9 / ECL", "Valuation"].map((tab, i) => (
+            {["Portfolio", "Deal Capture", "Valuation"].map((tab, i) => (
               <div
                 key={tab}
                 className="rounded-md px-3 py-1.5 text-[8px] font-semibold"
@@ -179,10 +179,10 @@ const PlatformMockup = () => (
             ))}
           </div>
 
-          {/* Table */}
+          {/* Trade blotter table */}
           <div className="overflow-hidden rounded-lg border border-border">
-            <div className="flex gap-5 bg-surface-muted px-3 py-2 border-b border-border">
-              {["Security", "Stage", "Carrying", "ECL", "Status"].map((h) => (
+            <div className="flex gap-4 bg-surface-muted px-3 py-2 border-b border-border">
+              {["ID", "Instrument", "Counterparty", "Amount", "Status"].map((h) => (
                 <span
                   key={h}
                   className="text-[7px] font-bold uppercase tracking-wider text-dark-gray/40"
@@ -193,33 +193,33 @@ const PlatformMockup = () => (
             </div>
             {[
               {
-                id: "L001",
-                stage: "S1",
+                id: "D-042",
+                inst: "FGN Bond 2031",
+                cpty: "Zenith Bank",
+                amt: "₦500M",
+                status: "Approved",
                 color: "#0f766e",
-                amt: "₦450M",
-                ecl: "₦1.4M",
-                status: "Performing",
               },
               {
-                id: "L002",
-                stage: "S2",
+                id: "D-041",
+                inst: "CBN T-Bill 91d",
+                cpty: "CBN",
+                amt: "₦200M",
+                status: "Settled",
+                color: "#0f766e",
+              },
+              {
+                id: "D-040",
+                inst: "MTN Nigeria Bond",
+                cpty: "GTBank",
+                amt: "₦150M",
+                status: "Pending",
                 color: "#d97706",
-                amt: "₦78.5M",
-                ecl: "₦9.4M",
-                status: "Watch",
-              },
-              {
-                id: "L003",
-                stage: "S3",
-                color: "#b91c1c",
-                amt: "₦25M",
-                ecl: "₦12.5M",
-                status: "Substandard",
               },
             ].map((r, i) => (
               <div
                 key={i}
-                className="flex items-center gap-5 px-3 py-2"
+                className="flex items-center gap-4 px-3 py-2"
                 style={{
                   background: i % 2 === 0 ? "white" : "#fafafa",
                   borderTop: i > 0 ? "1px solid #f0f0f0" : "none",
@@ -228,17 +228,12 @@ const PlatformMockup = () => (
                 <span className="font-mono text-[8px] text-dark-gray/50 w-7">
                   {r.id}
                 </span>
-                <span
-                  className="rounded-full px-1.5 py-0.5 text-[7px] font-semibold text-white"
-                  style={{ background: r.color }}
-                >
-                  {r.stage}
+                <span className="text-[8px] text-dark-gray/70 w-16 truncate">{r.inst}</span>
+                <span className="text-[8px] text-dark-gray/55">{r.cpty}</span>
+                <span className="text-[8px] font-medium text-dark-gray/70">
+                  {r.amt}
                 </span>
-                <span className="text-[8px] text-dark-gray/60">{r.amt}</span>
-                <span className="text-[8px] font-medium text-danger">
-                  {r.ecl}
-                </span>
-                <span className="text-[8px]" style={{ color: r.color }}>
+                <span className="text-[8px] font-semibold" style={{ color: r.color }}>
                   {r.status}
                 </span>
               </div>
@@ -248,7 +243,7 @@ const PlatformMockup = () => (
           {/* Sparkline */}
           <div className="flex flex-1 items-end gap-1 rounded-lg border border-border bg-white p-3">
             <p className="self-start text-[7px] text-dark-gray/35 mr-2">
-              ECL Trend (12m)
+              Portfolio Return (12m)
             </p>
             {[38, 42, 48, 52, 47, 58, 62, 55, 68, 72, 78, 83].map((h, i) => (
               <div
@@ -489,11 +484,11 @@ const HeroSection = ({ onEnter }: { onEnter: () => void }) => {
               </strong>
               ,{" "}
               <strong className="font-semibold text-white/85">
-                IFRS 9 &amp; ECL
+                Deal Capture &amp; Workflow
               </strong>
-              , Deal Capture, Performance Analytics, Duration &amp; Risk, Market
+              , Performance Analytics, Duration &amp; Risk, Market
               Data, Accounting, and Reporting — unified in a single audit-ready
-              platform built for CBN compliance.
+              platform built for NAICOM and CBN compliance.
             </p>
 
             {/* CTAs */}
@@ -528,7 +523,7 @@ const HeroSection = ({ onEnter }: { onEnter: () => void }) => {
                 },
                 {
                   icon: <FileText className="h-3.5 w-3.5" />,
-                  text: "IFRS 9 Ready",
+                  text: "Workflow Enabled",
                 },
                 {
                   icon: <Check className="h-3.5 w-3.5" />,
@@ -643,19 +638,19 @@ const MODULES = [
     bg: "#FBEEE6",
   },
   {
-    id: "ifrs9",
+    id: "workflow",
     number: "05",
     icon: <Calculator className="h-6 w-6" />,
-    title: "IFRS 9 — Expected Credit Loss",
-    subtitle: "Automated ECL computation aligned to CBN guidelines",
+    title: "Workflow & Maker-Checker",
+    subtitle: "Multi-role approval workflow from deal origination to settlement",
     description:
-      "Automate the full IFRS 9 impairment workflow from SICR detection and stage allocation through PD/LGD/EAD estimation to ECL charge computation. Built to CBN reporting standards, with full audit trail.",
+      "Every investment transaction passes through a configurable multi-role approval workflow. Deal originators, checkers, CRO, and CFO each play a defined role — with mandatory sign-off gates, SLA tracking, and an immutable audit trail at every step.",
     capabilities: [
-      "Automated SICR detection & staging",
-      "PD · LGD · EAD parameterisation",
-      "12-month & lifetime ECL calculation",
-      "Macro-economic overlay inputs",
-      "CBN regulatory reporting output",
+      "Deal origination to settlement pipeline",
+      "Configurable maker-checker approval gates",
+      "SLA countdown and escalation alerts",
+      "Investment limit enforcement at origination",
+      "Immutable audit trail with role attribution",
     ],
     accent: "#C2410C",
     bg: "#FBEFE6",
@@ -835,7 +830,7 @@ const CAPABILITIES = [
   {
     icon: <Shield className="h-5 w-5" />,
     title: "CBN Compliance",
-    desc: "Outputs aligned to CBN IFRS 9 supervisory guidelines and regulatory filing formats.",
+    desc: "Outputs aligned to CBN and NAICOM supervisory guidelines and regulatory filing formats.",
   },
   {
     icon: <Activity className="h-5 w-5" />,
@@ -859,8 +854,8 @@ const CAPABILITIES = [
   },
   {
     icon: <AlertTriangle className="h-5 w-5" />,
-    title: "Early Warning",
-    desc: "SICR triggers and watch-list alerts before accounts formally migrate to Stage 2 or 3.",
+    title: "Limit Enforcement",
+    desc: "Investment limits enforced at deal origination — NAICOM and CBN concentration rules built in.",
   },
 ];
 
@@ -926,8 +921,8 @@ const StatsBanner = () => {
       icon: <Layers className="h-5 w-5" />,
     },
     {
-      value: "IFRS 9",
-      label: "Regulatory standard",
+      value: "IFRS 13",
+      label: "Fair value hierarchy",
       icon: <FileText className="h-5 w-5" />,
     },
     {
@@ -994,12 +989,12 @@ const ComplianceSection = () => {
   const { ref, inView } = useInView();
   const items = [
     {
-      label: "IFRS 9 Phase 1–3",
-      desc: "Classification, impairment, and hedging fully supported.",
+      label: "IFRS 13 Fair Value Hierarchy",
+      desc: "L1/L2/L3 fair value classification and measurement for all investment securities.",
     },
     {
-      label: "CBN Prudential Guidelines",
-      desc: "Stage labels, provisioning rates, and write-off policies.",
+      label: "NAICOM / CBN Investment Guidelines",
+      desc: "Concentration limits, single-issuer caps, and eligible asset classes enforced at source.",
     },
     {
       label: "IFRS 13 Fair Value",
@@ -1050,8 +1045,8 @@ const ComplianceSection = () => {
               />
               <div className="bg-surface-muted px-5 py-4">
                 <p className="text-xs leading-relaxed text-dark-gray/55">
-                  Every computation is fully traceable from raw data ingestion
-                  through model parameters to final ECL charge with a complete,
+                  Every transaction is fully traceable from deal origination
+                  through valuation and approval to settlement — with a complete,
                   immutable audit record.
                 </p>
               </div>
@@ -1118,7 +1113,7 @@ const CTASection = ({ onEnter }: { onEnter: () => void }) => {
               Your financial platform is ready.
             </h2>
             <p className="mx-auto mb-10 max-w-lg text-base leading-relaxed text-dark-gray/58">
-              Access Portfolio Management, IFRS 9 & ECL computation, and
+              Access Portfolio Management, Deal Capture & Workflow, and
               Valuation tools integrated in one secure, audit-ready environment.
             </p>
 
@@ -1166,7 +1161,7 @@ const Footer = () => (
           </div>
           <p className="text-xs leading-relaxed text-dark-gray/45">
             Enterprise financial analytics platform for the Leadway Holdings
-            Group. Portfolio management, IFRS 9 & ECL, and valuation in one
+            Group. Portfolio management, deal workflow, and valuation in one
             integrated environment.
           </p>
         </div>
@@ -1178,14 +1173,14 @@ const Footer = () => (
               "Platform",
               [
                 "Portfolio Module",
-                "IFRS 9 & ECL Module",
+                "Workflow Module",
                 "Valuation Engine",
                 "Reporting",
               ],
             ],
             [
               "Compliance",
-              ["CBN Guidelines", "IFRS 9", "IFRS 13", "Audit Trail"],
+              ["CBN Guidelines", "NAICOM Rules", "IFRS 13", "Audit Trail"],
             ],
             [
               "Organisation",

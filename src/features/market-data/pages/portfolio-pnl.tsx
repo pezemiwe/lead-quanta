@@ -1,4 +1,4 @@
-import {
+﻿import {
   Area,
   AreaChart,
   CartesianGrid,
@@ -45,7 +45,7 @@ export function MarketDataPortfolioPnl() {
           Portfolio MTM & P&L Trajectory
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Mark-to-market value driven by NGN curve shifts � 90-day window
+          Mark-to-market value driven by NGN curve shifts · 90-day window
         </p>
       </div>
 
@@ -86,7 +86,7 @@ export function MarketDataPortfolioPnl() {
       </div>
 
       <SectionCard
-        title="Portfolio value � 90-day"
+        title="Portfolio value · 90-day"
         description="?B mark-to-market based on NGN curve revaluation"
       >
         <div className="h-80">
@@ -106,10 +106,10 @@ export function MarketDataPortfolioPnl() {
               />
               <YAxis
                 tick={{ fontSize: 11 }}
-                tickFormatter={(v: number) => `?${v.toFixed(0)}B`}
+                tickFormatter={(v: number) => `₦${v.toFixed(0)}B`}
                 domain={["auto", "auto"]}
               />
-              <Tooltip formatter={(v) => `?${Number(v ?? 0).toFixed(2)}B`} />
+              <Tooltip formatter={(v) => `₦${Number(v ?? 0).toFixed(2)}B`} />
               <Area
                 type="monotone"
                 dataKey="value"
@@ -137,9 +137,9 @@ export function MarketDataPortfolioPnl() {
               />
               <YAxis
                 tick={{ fontSize: 11 }}
-                tickFormatter={(v: number) => `?${v.toFixed(0)}B`}
+                tickFormatter={(v: number) => `₦${v.toFixed(0)}B`}
               />
-              <Tooltip formatter={(v) => `?${Number(v ?? 0).toFixed(2)}B`} />
+              <Tooltip formatter={(v) => `₦${Number(v ?? 0).toFixed(2)}B`} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Line
                 type="monotone"

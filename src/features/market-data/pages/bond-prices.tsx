@@ -1,4 +1,4 @@
-import {
+ï»¿import {
   CartesianGrid,
   Legend,
   Line,
@@ -38,7 +38,7 @@ export function MarketDataBondPrices() {
           Bond Prices & Quotes
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          FGN bonds & corporate selection · clean prices per ?100 face · 90-day
+          FGN bonds & corporate selection Â· clean prices per ?100 face Â· 90-day
           history
         </p>
       </div>
@@ -85,7 +85,7 @@ export function MarketDataBondPrices() {
 
       <SectionCard
         title="Price history"
-        description="Clean price (?) per 100 face — 90-day series"
+        description="Clean price (?) per 100 face Â· 90-day series"
       >
         <div className="h-96">
           <ResponsiveContainer>

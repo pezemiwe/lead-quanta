@@ -1,4 +1,4 @@
-import { type ReactNode, useState, useEffect } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import clsx, { type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -42,14 +42,8 @@ export const DataTable = <T extends Record<string, unknown>>({
   rowClassName,
 }: DataTableProps<T>) => {
   const [page, setPage] = useState(1);
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 800);
-    return () => clearTimeout(t);
-  }, []);
-
-  const showSkeleton = loading || !mounted;
+  const showSkeleton = loading;
 
   // Reset to page 1 when data changes
   useEffect(() => {

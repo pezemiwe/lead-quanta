@@ -9,8 +9,8 @@ export function ToastsSection() {
           variant="outline"
           onClick={() =>
             toaster.success({
-              title: "ECL computed successfully",
-              description: "Total ECL: ₦1.84B across 3 stages.",
+              title: "Valuation run complete",
+              description: "Portfolio marked-to-market. 68 instruments repriced.",
             })
           }
         >
@@ -31,8 +31,8 @@ export function ToastsSection() {
           variant="outline"
           onClick={() =>
             toaster.info({
-              title: "PD matrix updated",
-              description: "Changes will apply on next run.",
+              title: "Yield curve updated",
+              description: "FGN curve refreshed. Revaluation triggered.",
             })
           }
         >

@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePersona } from "../context/persona";
+import { useEntity, type EntityId } from "../context/entity";
 import { getModuleAccess, type ModuleId } from "../context/permissions";
+import { isFrontOfficeTrader } from "../context/platform-personas";
 import {
   BarChart2,
   Calculator,
   LineChart,
   ChevronRight,
+  ChevronDown,
   LogOut,
   Shield,
   Activity,
@@ -21,6 +24,58 @@ import {
   Lock,
   Eye,
 } from "lucide-react";
+
+function ModulesEntitySelector() {
+  const { entity, setEntityId, entities } = useEntity();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition hover:bg-surface-muted"
+        style={{ borderColor: entity.colour + "44", color: entity.colour }}
+      >
+        <span className="h-2 w-2 rounded-full shrink-0" style={{ background: entity.colour }} />
+        <span className="hidden sm:inline">{entity.shortName}</span>
+        <ChevronDown className="h-3 w-3 opacity-70" />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-1.5 w-68 overflow-hidden rounded-xl border border-border bg-white shadow-[0_8px_32px_rgba(0,0,0,0.10)]">
+          <div className="px-3 py-2 border-b border-border">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-dark-gray/40">Switch Entity</p>
+          </div>
+          {entities.map((e) => (
+            <button
+              key={e.id}
+              onClick={() => { setEntityId(e.id as EntityId); setOpen(false); }}
+              className={`flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-surface-muted ${entity.id === e.id ? "bg-orange-50" : ""}`}
+            >
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: e.colour }} />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-dark-gray truncate">
+                  {e.shortName}
+                  {entity.id === e.id && <span className="ml-1.5 text-primary">✓</span>}
+                </p>
+                <p className="text-[10px] text-dark-gray/45 truncate">{e.regulator} · ₦{(e.aum / 1e9).toFixed(0)}B AUM</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /* ── Module definitions ─────────────────────────────────────── */
 const MODULES = [
@@ -95,24 +150,6 @@ const MODULES = [
     ],
     accent: "#9A3412",
     lightBg: "#FBEEE6",
-  },
-  {
-    id: "ifrs9",
-    live: true,
-    icon: Calculator,
-    title: "IFRS 9 — Expected Credit Loss",
-    subtitle: "Automated ECL computation aligned to CBN guidelines",
-    description:
-      "Automate the full IFRS 9 impairment lifecycle from SICR detection and stage allocation through PD/LGD/EAD parameterisation to ECL charge computation aligned with CBN prudential guidelines.",
-    features: [
-      { icon: AlertTriangle, label: "Automated SICR detection & staging" },
-      { icon: Calculator, label: "PD · LGD · EAD parameters" },
-      { icon: FileText, label: "12-month & lifetime ECL" },
-      { icon: TrendingUp, label: "Macro-economic overlays" },
-      { icon: Shield, label: "CBN regulatory reporting" },
-    ],
-    accent: "#C2410C",
-    lightBg: "#FBEFE6",
   },
   {
     id: "performance",
@@ -225,10 +262,11 @@ export function ModulesPage() {
     navigate("/");
   };
 
-  // Count how many modules this persona can access
-  const accessibleCount = MODULES.filter(
+  // Only show modules this persona can access — hide locked cards entirely
+  const visibleModules = MODULES.filter(
     (m) => getModuleAccess(persona.role, m.id as ModuleId) !== "none",
-  ).length;
+  );
+  const accessibleCount = visibleModules.length;
 
   return (
     <div
@@ -254,8 +292,10 @@ export function ModulesPage() {
             </div>
           </div>
 
-          {/* User + logout */}
+          {/* Entity selector + User + logout */}
           <div className="flex items-center gap-3">
+            <ModulesEntitySelector />
+            <div className="h-4 w-px bg-border" />
             <div className="hidden items-center gap-3 sm:flex">
               <div className="text-right">
                 <p className="text-sm font-semibold text-dark-gray">
@@ -270,7 +310,6 @@ export function ModulesPage() {
                 {persona.avatar}
               </span>
             </div>
-            <div className="h-4 w-px bg-border" />
             <button
               onClick={handleLogout}
               className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-dark-gray/50 transition-all hover:bg-surface-muted hover:text-dark-gray"
@@ -293,8 +332,22 @@ export function ModulesPage() {
             <span className="text-primary">{persona.name.split(" ")[0]}</span>.
           </h1>
           <p className="text-sm text-dark-gray/50">
-            Select a module below to begin your session.{" "}
-            <span className="font-medium text-dark-gray/70">{accessibleCount} of {MODULES.length} modules available for your role.</span>
+            {isFrontOfficeTrader(persona.role) ? (
+              <>
+                Your trading dashboard is ready.{" "}
+                <button
+                  type="button"
+                  onClick={() => navigate("/trader/dashboard")}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  Open Trading Dashboard
+                </button>
+                {" "}or select another module below.
+              </>
+            ) : (
+              <>Select a module below to begin your session.</>
+            )}{" "}
+            <span className="font-medium text-dark-gray/70">{accessibleCount} module{accessibleCount !== 1 ? "s" : ""} available.</span>
           </p>
         </div>
       </div>
@@ -302,19 +355,18 @@ export function ModulesPage() {
       {/* ── Module cards ──────────────────────────────────────── */}
       <main className="flex-1 py-8 lg:py-10">
         <div className="mx-auto max-w-[1440px] px-4 lg:px-6">
-          <div className="grid gap-3 sm:gap-4 grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {MODULES.map((m) => {
+          <div className={`grid gap-5 sm:grid-cols-2 lg:grid-cols-3 ${visibleModules.length <= 2 ? "max-w-3xl" : visibleModules.length === 3 ? "max-w-5xl" : ""}`}>
+            {visibleModules.map((m) => {
               const Icon = m.icon;
               const isHovered = hovered === m.id;
               const access = getModuleAccess(persona.role, m.id as ModuleId);
-              const isLocked = access === "none";
               const isReadOnly = access === "read-only";
               return (
                 <div
                   key={m.id}
-                  onMouseEnter={() => !isLocked && setHovered(m.id)}
+                  onMouseEnter={() => setHovered(m.id)}
                   onMouseLeave={() => setHovered(null)}
-                  className={`group flex flex-col overflow-hidden rounded-xl border border-border bg-white transition-all duration-200 ${isLocked ? "opacity-50 grayscale" : ""}`}
+                  className="group flex flex-col overflow-hidden rounded-xl border border-border bg-white transition-all duration-200"
                   style={{
                     boxShadow: isHovered
                       ? `0 12px 32px rgba(0,0,0,0.09), 0 0 0 1.5px ${m.accent}33`
@@ -322,94 +374,72 @@ export function ModulesPage() {
                     transform: isHovered ? "translateY(-2px)" : "translateY(0)",
                   }}
                 >
-                  {/* Accent top stripe */}
-                  <div style={{ height: 3, background: isLocked ? "#9ca3af" : m.accent, flexShrink: 0 }} />
+                  <div style={{ height: 3, background: m.accent, flexShrink: 0 }} />
 
-                  <div className="flex flex-1 flex-col p-4">
-                    {/* Icon + status badge */}
+                  <div className="flex flex-1 flex-col p-5">
                     <div className="mb-3 flex items-start justify-between">
                       <div
-                        className="flex h-9 w-9 items-center justify-center rounded-lg text-white"
-                        style={{ background: isLocked ? "#9ca3af" : m.accent }}
+                        className="flex h-10 w-10 items-center justify-center rounded-lg text-white"
+                        style={{ background: m.accent }}
                       >
-                        <Icon className="h-4 w-4" />
+                        <Icon className="h-5 w-5" />
                       </div>
-                      {isLocked ? (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-gray-400">
-                          <Lock className="h-2.5 w-2.5" /> Locked
-                        </span>
-                      ) : isReadOnly ? (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-600">
+                      {isReadOnly ? (
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-600">
                           <Eye className="h-2.5 w-2.5" /> View
                         </span>
                       ) : m.live ? (
-                        <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-emerald-600">
+                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-emerald-600">
                           Live
                         </span>
                       ) : (
-                        <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-dark-gray/35">
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-dark-gray/35">
                           Soon
                         </span>
                       )}
                     </div>
 
-                    {/* Module name + subtitle */}
-                    <h3 className="mb-0.5 text-[13px] font-bold leading-snug text-dark-gray">
-                      {m.title}
-                    </h3>
-                    <p className="mb-3 text-[11px] leading-snug text-dark-gray/45">
-                      {m.subtitle}
-                    </p>
+                    <h3 className="mb-1 text-sm font-bold leading-snug text-dark-gray">{m.title}</h3>
+                    <p className="mb-4 text-xs leading-relaxed text-dark-gray/45">{m.subtitle}</p>
 
-                    {/* Top 3 capabilities */}
-                    <div className="mb-4 flex flex-1 flex-col gap-1.5">
+                    <div className="mb-5 flex flex-1 flex-col gap-2">
                       {m.features.slice(0, 3).map(({ label }) => (
-                        <div key={label} className="flex items-start gap-1.5">
+                        <div key={label} className="flex items-start gap-2">
                           <div
-                            className="mt-[3px] h-1 w-1 shrink-0 rounded-full"
-                            style={{ background: isLocked ? "#9ca3af" : `${m.accent}99` }}
+                            className="mt-1.5 h-1 w-1 shrink-0 rounded-full"
+                            style={{ background: `${m.accent}99` }}
                           />
-                          <span className="text-[10px] leading-snug text-dark-gray/50">
-                            {label}
-                          </span>
+                          <span className="text-[11px] leading-snug text-dark-gray/50">{label}</span>
                         </div>
                       ))}
                     </div>
 
-                    {/* CTA */}
-                    {isLocked ? (
-                      <button
-                        disabled
-                        className="flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-semibold cursor-not-allowed bg-gray-100 text-gray-400"
-                      >
-                        <Lock className="h-3 w-3" /> Access Restricted
-                      </button>
-                    ) : isReadOnly ? (
+                    {isReadOnly ? (
                       <button
                         onClick={() => navigate(`/${m.id}`)}
-                        className="flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-bold border border-amber-200 bg-amber-50 text-amber-800 transition-all hover:bg-amber-100"
+                        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 py-2.5 text-xs font-bold text-amber-800 transition-all hover:bg-amber-100"
                       >
-                        <Eye className="h-3 w-3" /> View Module
+                        <Eye className="h-3.5 w-3.5" /> View Module
                       </button>
                     ) : m.live ? (
                       <button
                         onClick={() => navigate(`/${m.id}`)}
-                        className="flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-semibold text-white transition-all duration-200"
+                        className="flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-xs font-semibold text-white transition-all duration-200"
                         style={{
                           background: isHovered
                             ? `linear-gradient(90deg, ${m.accent} 0%, ${m.accent}CC 100%)`
                             : m.accent,
                         }}
                       >
-                        Open Module <ChevronRight className="h-3 w-3" />
+                        Open Module <ChevronRight className="h-3.5 w-3.5" />
                       </button>
                     ) : (
                       <button
                         disabled
-                        className="flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-semibold cursor-not-allowed text-dark-gray/30"
+                        className="flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-lg py-2.5 text-xs font-semibold text-dark-gray/30"
                         style={{ background: "#F4F4F6" }}
                       >
-                        <Lock className="h-3 w-3" /> Coming Soon
+                        <Lock className="h-3.5 w-3.5" /> Coming Soon
                       </button>
                     )}
                   </div>
@@ -430,7 +460,7 @@ export function ModulesPage() {
             </p>
             <div className="flex items-center gap-1.5 text-xs text-dark-gray/30">
               <Shield className="h-3 w-3" />
-              <span>CBN Compliant · IFRS 9 Ready · Audit-Trail Enabled</span>
+              <span>CBN Compliant · Workflow Enabled · Audit-Trail Enabled</span>
             </div>
           </div>
         </div>

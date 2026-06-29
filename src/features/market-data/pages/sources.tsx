@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { CheckCircle2, Database, RefreshCw, Zap } from "lucide-react";
 import { useMarketData } from "../store";
 import { SectionCard } from "../../../components/shared/section-card";

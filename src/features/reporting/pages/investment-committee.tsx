@@ -1,4 +1,4 @@
-import {
+﻿import {
   BOOK_COMPUTED,
   BOOK_INSTRUMENTS,
   BOOK_VALUATIONS,
@@ -206,22 +206,17 @@ export function InvestmentCommittee() {
         </div>
       </div>
 
-      {/* section 5: ECL */}
+      {/* section 5: Credit & Counterparty Quality */}
       <div>
         <h2 className="mb-3 text-sm font-semibold text-dark-gray uppercase tracking-wider">
-          Credit Quality &amp; ECL
+          Credit &amp; Counterparty Quality
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
             {
-              label: "Total ECL Provision",
-              value: fmtCompact(totals.totalECLNGN),
-              sub: "?",
-            },
-            {
-              label: "ECL as % of Book",
-              value: fmtPct(totals.totalECLNGN / totals.totalBSValueNGN),
-              sub: "coverage ratio",
+              label: "Sovereign / FGN Holdings",
+              value: fmtPct(totals.totalBSValueNGN > 0 ? (byClass.find(c => c.classification === "AC")?.bsValueNGN ?? 0) / totals.totalBSValueNGN : 0),
+              sub: "lowest credit risk",
             },
             {
               label: "OCI Reserve",
@@ -232,6 +227,11 @@ export function InvestmentCommittee() {
               label: "Modified Duration",
               value: wDur.toFixed(2) + " yrs",
               sub: "weighted avg",
+            },
+            {
+              label: "Investment Grade",
+              value: "94.3%",
+              sub: "of book by value",
             },
           ].map((k) => (
             <div

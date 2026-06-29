@@ -1,4 +1,4 @@
-/* ───────────────────────────────────────────────────────────
+﻿/* ───────────────────────────────────────────────────────────
    Valuation Engine — Calculations
    Fixed income amortisation, EIR, cash-flow PV, OCI, risk.
    ─────────────────────────────────────────────────────────── */
@@ -502,6 +502,7 @@ export function valueInstrument(
         daysToNextCoupon: null,
       },
       balanceSheetValueNGN: fv * fx,
+      balanceSheetValueUSD: (fv * fx) / assumptions.fxUSD,
     };
   }
 
@@ -558,6 +559,7 @@ export function valueInstrument(
     annualEIRIncome: ac * eir,
     risk,
     balanceSheetValueNGN: bsLocal * fx,
+    balanceSheetValueUSD: (bsLocal * fx) / assumptions.fxUSD,
   };
 }
 
@@ -592,13 +594,8 @@ export function runPortfolioEngine(
     (s, v) => s + v.balanceSheetValueNGN,
     0,
   );
-  const totalECLNGN = valuations.reduce(
-    (s, v) =>
-      s +
-      (v.instrument.eclProvision ?? 0) *
-        fxRate(v.instrument.currency, assumptions),
-    0,
-  );
+  const totalFaceValueUSD = totalFaceValueNGN / assumptions.fxUSD;
+  const totalBSValueUSD = totalBSValueNGN / assumptions.fxUSD;
   const totalOCIReserveNGN = valuations
     .filter((v) => v.instrument.classification === "FVOCI")
     .reduce(
@@ -626,13 +623,6 @@ export function runPortfolioEngine(
         0,
       ),
       bsValueNGN: subset.reduce((s, v) => s + v.balanceSheetValueNGN, 0),
-      eclNGN: subset.reduce(
-        (s, v) =>
-          s +
-          (v.instrument.eclProvision ?? 0) *
-            fxRate(v.instrument.currency, assumptions),
-        0,
-      ),
     };
   });
 
@@ -734,13 +724,6 @@ export function runPortfolioEngine(
           s + v.accruedInterest * fxRate(v.instrument.currency, assumptions),
         0,
       ),
-      totalECLNGN: acSet.reduce(
-        (s, v) =>
-          s +
-          (v.instrument.eclProvision ?? 0) *
-            fxRate(v.instrument.currency, assumptions),
-        0,
-      ),
     },
     fvoci: {
       instruments: fvociSet.length,
@@ -756,13 +739,6 @@ export function runPortfolioEngine(
       ),
       totalOCIReserveNGN: fvociSet.reduce(
         (s, v) => s + v.ociReserve * fxRate(v.instrument.currency, assumptions),
-        0,
-      ),
-      totalECLNGN: fvociSet.reduce(
-        (s, v) =>
-          s +
-          (v.instrument.eclProvision ?? 0) *
-            fxRate(v.instrument.currency, assumptions),
         0,
       ),
     },
@@ -787,7 +763,8 @@ export function runPortfolioEngine(
       instruments: instruments.length,
       totalFaceValueNGN,
       totalBSValueNGN,
-      totalECLNGN,
+      totalFaceValueUSD,
+      totalBSValueUSD,
       totalOCIReserveNGN,
       totalFVTPLUnrealisedGLNGN: totalFVTPLGLNGN,
     },

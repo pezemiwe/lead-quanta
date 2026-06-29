@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   Classification,
   CouponFrequency,
   Currency,
@@ -102,9 +102,6 @@ export function parseInstrumentsCSV(text: string): ParseResult {
         couponRate: Number(obj.couponRate),
         couponFrequency: (obj.couponFrequency as CouponFrequency) || "Semi",
         status: (obj.status as Instrument["status"]) || "Active",
-        impairmentStage:
-          (obj.impairmentStage as Instrument["impairmentStage"]) || "Stage 1",
-        eclProvision: obj.eclProvision ? Number(obj.eclProvision) : 0,
       };
       if (!inst.id || !inst.name) {
         errors.push({ row: r + 1, message: "Missing id or name" });
@@ -121,13 +118,11 @@ export function parseInstrumentsCSV(text: string): ParseResult {
 export const CSV_TEMPLATE_HEADER = REQUIRED.concat([
   "ifrs13Level",
   "status",
-  "impairmentStage",
-  "eclProvision",
 ]).join(",");
 
 export function buildSampleCSV(): string {
   return `${CSV_TEMPLATE_HEADER}
-INV-046,FGN Bond 13.98% 2028,FGN Bond,FGN,Sovereign,AC,NGN,1000000000,980000000,2021-02-23,2028-02-23,0.1398,Semi,L1,Active,Stage 2,2500000
-INV-047,FGN Bond 14.55% 2029,FGN Bond,FGN,Sovereign,FVOCI,NGN,500000000,485000000,2022-04-15,2029-04-15,0.1455,Semi,L1,Active,Stage 2,1250000
-INV-039,NNPC CP 270D,Commercial Paper,NNPC Ltd,Energy,FVTPL,NGN,400000000,345200000,2025-11-01,2026-07-28,0,Zero,L2,Active,N/A,0`;
+INV-046,FGN Bond 13.98% 2028,FGN Bond,FGN,Sovereign,AC,NGN,1000000000,980000000,2021-02-23,2028-02-23,0.1398,Semi,L1,Active
+INV-047,FGN Bond 14.55% 2029,FGN Bond,FGN,Sovereign,FVOCI,NGN,500000000,485000000,2022-04-15,2029-04-15,0.1455,Semi,L1,Active
+INV-039,NNPC CP 270D,Commercial Paper,NNPC Ltd,Energy,FVTPL,NGN,400000000,345200000,2025-11-01,2026-07-28,0,Zero,L2,Active`;
 }

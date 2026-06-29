@@ -1,4 +1,4 @@
-import { type ReactNode, useState, useEffect } from "react";
+import { Children, type ReactNode, useState, useEffect } from "react";
 import clsx, { type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
@@ -66,7 +66,7 @@ export const StatCard = ({
 }: StatCardProps) => {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 800);
+    const t = setTimeout(() => setMounted(true), 300);
     return () => clearTimeout(t);
   }, []);
 
@@ -75,24 +75,14 @@ export const StatCard = ({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-xl border p-5 shadow-[0_1px_4px_rgba(0,0,0,0.05)] transition-shadow hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)]",
+        "flex min-h-[7.5rem] flex-col justify-between rounded-xl border p-5 shadow-sm transition-shadow hover:shadow-md",
         card,
         className,
       )}
     >
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-medium text-dark-gray/65">{title}</p>
-        {icon && (
-          <span
-            className={cn(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-              iconCls,
-            )}
-          >
-            {icon}
-          </span>
-        )}
-      </div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-dark-gray/50">
+        {title}
+      </p>
       {showSkeleton ? (
         <div className="space-y-2">
           <div className="shimmer-skeleton h-8 w-28 rounded-md" />
@@ -100,9 +90,21 @@ export const StatCard = ({
         </div>
       ) : (
         <>
-          <p className="text-2xl font-semibold tracking-tight text-dark-gray">
-            {value}
-          </p>
+          <div className="mt-3 flex items-end justify-between gap-3">
+            <p className="text-3xl font-bold tabular-nums tracking-tight text-dark-gray">
+              {value}
+            </p>
+            {icon && (
+              <span
+                className={cn(
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
+                  iconCls,
+                )}
+              >
+                {icon}
+              </span>
+            )}
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             {trend && (
               <span
@@ -130,13 +132,18 @@ export const StatCardGrid = ({
 }: {
   children: ReactNode;
   className?: string;
-}) => (
-  <div
-    className={cn(
-      "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4",
-      className,
-    )}
-  >
-    {children}
-  </div>
-);
+}) => {
+  const count = Children.count(children);
+  const gridCols =
+    count <= 1
+      ? "grid-cols-1"
+      : count === 2
+        ? "grid-cols-1 sm:grid-cols-2"
+        : count === 3
+          ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-4";
+
+  return (
+    <div className={cn("grid gap-5", gridCols, className)}>{children}</div>
+  );
+};

@@ -7,7 +7,7 @@ export function SectionCardsSection() {
     <S label="Section Cards">
       <SectionCard
         title="Portfolio Summary"
-        description="Aggregated ECL metrics for December 2024"
+        description="Aggregated portfolio analytics for December 2024"
         actions={
           <Button
             size="sm"

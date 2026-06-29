@@ -1,17 +1,16 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus, X, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import { useValuation } from "../store";
 import { SectionCard } from "../../../components/shared/section-card";
 import { EmptyPortfolio } from "../components/empty-portfolio";
-import { fmtNumber, CLASSIFICATION_BADGE, STAGE_BADGE } from "../utils";
+import { fmtNumber, CLASSIFICATION_BADGE } from "../utils";
 import { AcronymTip } from "../../../components/shared/acronym-tip";
 import type {
   Classification,
   CouponFrequency,
   Currency,
   IFRS13Level,
-  ImpairmentStage,
   Instrument,
   InstrumentType,
 } from "../engine/types";
@@ -168,15 +167,6 @@ export function ValuationInventory() {
                         </span>
                       </AcronymTip>
                     </td>
-                    <td className="px-4 py-3">
-                      {i.impairmentStage && (
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${STAGE_BADGE[i.impairmentStage]}`}
-                        >
-                          {i.impairmentStage}
-                        </span>
-                      )}
-                    </td>
                     <td className="px-4 py-3 text-right font-mono">
                       {fmtNumber(bs, 0)}
                     </td>
@@ -291,8 +281,6 @@ function AddInstrumentDrawer({ onClose }: { onClose: () => void }) {
     couponRate: 0.15,
     couponFrequency: "Semi",
     status: "Active",
-    impairmentStage: "Stage 1",
-    eclProvision: 0,
   });
   const [err, setErr] = useState<string | null>(null);
 
@@ -512,23 +500,6 @@ function AddInstrumentDrawer({ onClose }: { onClose: () => void }) {
                 }
                 className={inputCls}
               />
-            </Field>
-            <Field label="Impairment Stage">
-              <select
-                value={draft.impairmentStage}
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    impairmentStage: e.target.value as ImpairmentStage,
-                  })
-                }
-                className={inputCls}
-              >
-                <option>Stage 1</option>
-                <option>Stage 2</option>
-                <option>Stage 3</option>
-                <option>N/A</option>
-              </select>
             </Field>
           </div>
         </div>
@@ -785,23 +756,6 @@ function EditInstrumentDrawer({
                 }
                 className={inputCls}
               />
-            </Field>
-            <Field label="Impairment Stage">
-              <select
-                value={draft.impairmentStage}
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    impairmentStage: e.target.value as ImpairmentStage,
-                  })
-                }
-                className={inputCls}
-              >
-                <option>Stage 1</option>
-                <option>Stage 2</option>
-                <option>Stage 3</option>
-                <option>N/A</option>
-              </select>
             </Field>
           </div>
         </div>

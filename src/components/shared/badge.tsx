@@ -5,9 +5,6 @@ import { twMerge } from "tailwind-merge";
 const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
 
 export type BadgeVariant =
-  | "stage1"
-  | "stage2"
-  | "stage3"
   | "performing"
   | "watch"
   | "substandard"
@@ -35,9 +32,6 @@ export type BadgeProps = {
 };
 
 const variantClasses: Record<BadgeVariant, string> = {
-  stage1: "bg-emerald-50 text-emerald-800 border-emerald-200",
-  stage2: "bg-amber-50 text-amber-800 border-amber-200",
-  stage3: "bg-red-50 text-red-800 border-red-200",
   performing: "bg-emerald-50 text-emerald-800 border-emerald-200",
   watch: "bg-sky-50 text-sky-800 border-sky-200",
   substandard: "bg-amber-50 text-amber-800 border-amber-200",
@@ -55,9 +49,6 @@ const variantClasses: Record<BadgeVariant, string> = {
 };
 
 const dotClasses: Record<BadgeVariant, string> = {
-  stage1: "bg-emerald-500",
-  stage2: "bg-amber-500",
-  stage3: "bg-red-600",
   performing: "bg-emerald-500",
   watch: "bg-sky-500",
   substandard: "bg-amber-500",
@@ -106,25 +97,18 @@ export const Badge = ({
   </span>
 );
 
-export const StageBadge = ({
-  stage,
+export const ClassificationBadge = ({
+  classification,
   ...props
 }: Omit<BadgeProps, "variant" | "label" | "children"> & {
-  stage: 1 | 2 | 3 | "Stage 1" | "Stage 2" | "Stage 3";
+  classification: "AC" | "FVOCI" | "FVTPL";
 }) => {
-  const num =
-    typeof stage === "string"
-      ? (parseInt(stage.slice(-1)) as 1 | 2 | 3)
-      : stage;
-  const map: Record<1 | 2 | 3, BadgeVariant> = {
-    1: "stage1",
-    2: "stage2",
-    3: "stage3",
+  const map: Record<"AC" | "FVOCI" | "FVTPL", BadgeVariant> = {
+    AC: "success",
+    FVOCI: "warning",
+    FVTPL: "info",
   };
-  const labels: Record<1 | 2 | 3, string> = {
-    1: "Stage 1",
-    2: "Stage 2",
-    3: "Stage 3",
-  };
-  return <Badge variant={map[num]} label={labels[num]} dot {...props} />;
+  return (
+    <Badge variant={map[classification]} label={classification} dot {...props} />
+  );
 };

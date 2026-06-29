@@ -1,4 +1,4 @@
-import {
+﻿import {
   Bar,
   BarChart,
   CartesianGrid,
@@ -188,7 +188,7 @@ export function DurationRiskBySector() {
           {/* 2b   Horizontal bar */}
           <div>
             <p className="mb-2 text-center text-xs font-semibold text-gray-600">
-              Chart 2b DV01 by Instrument Type (?)
+              Chart 2b DV01 by Instrument Type (₦)
             </p>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart
@@ -250,7 +250,7 @@ export function DurationRiskBySector() {
       {/* Chart 8   Stress by Sector */}
       <SectionCard
         title="Chart 8   Stress Test Impact by Sector"
-        description="P&L impact (? billions) for selected easing/tightening scenarios by sector."
+        description="P&L impact (₦ billions) for selected easing/tightening scenarios by sector."
       >
         <ResponsiveContainer width="100%" height={340}>
           <BarChart
@@ -265,12 +265,12 @@ export function DurationRiskBySector() {
               tickLine={false}
             />
             <YAxis
-              tickFormatter={(v: number) => `?${(v / 1e9).toFixed(1)}B`}
+              tickFormatter={(v: number) => `₦${(v / 1e9).toFixed(1)}B`}
               tick={{ fontSize: 11, fill: "#6b7280" }}
               axisLine={false}
               tickLine={false}
               label={{
-                value: "P&L Impact (? Billions)",
+                value: "P&L Impact (₦ Billions)",
                 angle: -90,
                 position: "insideLeft",
                 offset: -8,

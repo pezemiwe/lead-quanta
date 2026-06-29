@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+﻿import { useMemo } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft, AlertTriangle, TrendingUp, Activity } from "lucide-react";
 import { useDurationRisk } from "../store";

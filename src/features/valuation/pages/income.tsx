@@ -1,4 +1,4 @@
-import { useValuation } from "../store";
+﻿import { useValuation } from "../store";
 import { SectionCard } from "../../../components/shared/section-card";
 import { EmptyPortfolio } from "../components/empty-portfolio";
 import { fmtNumber } from "../utils";
@@ -31,10 +31,6 @@ export function ValuationIncome() {
             label="Total Accrued Interest"
             value={fmtNumber(income.ac.totalAccruedInterestNGN, 0)}
           />
-          <Row
-            label="Total ECL Provision"
-            value={fmtNumber(income.ac.totalECLNGN, 0)}
-          />
         </SectionCard>
 
         <SectionCard title="Fair Value (OCI) Portfolio">
@@ -55,10 +51,6 @@ export function ValuationIncome() {
             label="Total OCI Reserve"
             value={fmtNumber(income.fvoci.totalOCIReserveNGN, 0)}
             emphasis
-          />
-          <Row
-            label="Total ECL Provision"
-            value={fmtNumber(income.fvoci.totalECLNGN, 0)}
           />
         </SectionCard>
 

@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+﻿import { useNavigate, useParams } from "react-router-dom";
 import { usePersona } from "../../context/persona";
 import {
   LayoutDashboard,
@@ -12,6 +12,8 @@ import {
   ClipboardList,
   Bell,
   BookOpen,
+  Globe,
+  Droplets,
 } from "lucide-react";
 import { Logo } from "../../components/shared/logo";
 import { UserMenu } from "../../components/shared/user-menu";
@@ -27,6 +29,8 @@ import { PortfolioReports } from "./pages/reports";
 import { PortfolioPipeline } from "./pages/pipeline";
 import { PortfolioTasks } from "./pages/tasks";
 import { PortfolioBooks } from "./pages/portfolio-books";
+import { InvestmentPosition } from "./pages/investment-position";
+import { LiquidityPools } from "./pages/liquidity-pools";
 
 export type PortfolioPage =
   | "dashboard"
@@ -38,7 +42,9 @@ export type PortfolioPage =
   | "transactions"
   | "tasks"
   | "reports"
-  | "portfolios";
+  | "portfolios"
+  | "investment-position"
+  | "liquidity-pools";
 
 interface Props {
   persona: { name: string; role: string; avatar: string };
@@ -59,6 +65,22 @@ const NAV: {
     tooltip:
       "Assets I oversee. KPI trends, valuation, and performance vs. budget.",
     icon: <LayoutDashboard className="h-4 w-4" />,
+    group: "main",
+  },
+  {
+    id: "investment-position",
+    label: "Investment Position",
+    tooltip:
+      "Gross AUM and Net Asset Value in Naira and USD, by entity, currency, and asset class.",
+    icon: <Globe className="h-4 w-4" />,
+    group: "main",
+  },
+  {
+    id: "liquidity-pools",
+    label: "Liquidity Pools",
+    tooltip:
+      "Cash & money market pools — top 15 counterparty exposures vs credit limits.",
+    icon: <Droplets className="h-4 w-4" />,
     group: "main",
   },
   {
@@ -188,6 +210,10 @@ function PageBody({
       return <PortfolioReports />;
     case "portfolios":
       return <PortfolioBooks />;
+    case "investment-position":
+      return <InvestmentPosition />;
+    case "liquidity-pools":
+      return <LiquidityPools />;
   }
 }
 

@@ -1,4 +1,4 @@
-import {
+ï»¿import {
   CartesianGrid,
   Line,
   LineChart,
@@ -32,7 +32,7 @@ export function DurationRiskConvexity() {
         </h1>
         <p className="mt-1 text-sm text-gray-500">
           How portfolio value and percentage change respond to parallel yield
-          shocks — illustrating duration linearity and convexity's second-order
+          shocks â€” illustrating duration linearity and convexity's second-order
           benefit.
         </p>
       </div>
@@ -60,10 +60,10 @@ export function DurationRiskConvexity() {
         />
       </div>
 
-      {/* Chart 6 — two panels */}
-      <SectionCard title="Chart 6 — Price / Yield Convexity Curve">
+      {/* Chart 6 â€” two panels */}
+      <SectionCard title="Chart 6 â€” Price / Yield Convexity Curve">
         <div className="grid gap-8 lg:grid-cols-2">
-          {/* Left — portfolio value vs shock */}
+          {/* Left â€” portfolio value vs shock */}
           <div>
             <p className="mb-3 text-center text-xs font-semibold text-gray-600">
               Portfolio Value vs Yield Shock
@@ -98,12 +98,12 @@ export function DurationRiskConvexity() {
                   }}
                 />
                 <YAxis
-                  tickFormatter={(v: number) => `?${(v / 1e9).toFixed(1)}B`}
+                  tickFormatter={(v: number) => `â‚¦${(v / 1e9).toFixed(1)}B`}
                   tick={{ fontSize: 10, fill: "#6b7280" }}
                   axisLine={false}
                   tickLine={false}
                   label={{
-                    value: "Portfolio Value (? Billions)",
+                    value: "Portfolio Value (â‚¦ Billions)",
                     angle: -90,
                     position: "insideLeft",
                     offset: -12,
@@ -143,7 +143,7 @@ export function DurationRiskConvexity() {
             </ResponsiveContainer>
           </div>
 
-          {/* Right — % change vs shock */}
+          {/* Right â€” % change vs shock */}
           <div>
             <p className="mb-3 text-center text-xs font-semibold text-gray-600">
               % Change vs Yield Shock (Convexity Curve)
@@ -266,12 +266,12 @@ export function DurationRiskConvexity() {
                       {fmtPct(pt.pct / 100, 2)}
                     </td>
                     <td className="px-4 py-2.5 text-right font-mono text-xs text-gray-500">
-                      {isBase ? "—" : fmtCompactNGN(durApprox)}
+                      {isBase ? "â€”" : fmtCompactNGN(durApprox)}
                     </td>
                     <td
                       className={`px-4 py-2.5 text-right font-mono text-xs ${convAdj >= 0 ? "text-success" : "text-primary"}`}
                     >
-                      {isBase ? "—" : fmtCompactNGN(convAdj)}
+                      {isBase ? "â€”" : fmtCompactNGN(convAdj)}
                     </td>
                   </tr>
                 );

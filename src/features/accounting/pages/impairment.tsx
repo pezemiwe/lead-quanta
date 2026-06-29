@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+﻿import { useState } from "react";
+import { AlertTriangle, ShieldCheck, Eye } from "lucide-react";
 import {
   DataTable,
   type DataTableColumn,
@@ -14,56 +15,64 @@ import {
   fmtPct,
 } from "../../portfolio/engine/book-compute";
 
-interface ImpairmentRow {
+type Row = {
   id: string;
   name: string;
   type: string;
-  stage: string;
-  faceValue: number;
+  sector: string;
   bsValue: number;
-  ecl: number;
-  eclRate: number;
-}
+  ociReserve: number;
+  rating: string;
+  flag: "watch" | "review" | "ok";
+} & Record<string, unknown>;
 
-type Row = ImpairmentRow & Record<string, unknown>;
+const RATING_MAP: Record<string, string> = {
+  "Government / FGN": "Sovereign",
+  "Financial Services": "AA",
+  Banking: "AA",
+  "Oil & Gas": "A",
+  Telecoms: "A",
+  "Real Estate": "BBB",
+  Equities: "Unrated",
+  "Consumer Goods": "BBB",
+};
 
 export function Impairment() {
   const [selected, setSelected] = useState<Row | null>(null);
-  const { stage1, stage2, stage3, totalECL, totalExposure } = useMemo(() => {
-    const valMap = new Map(
-      BOOK_COMPUTED.valuations.map((v) => [v.instrument.id, v]),
-    );
 
-    const toRow = (i: (typeof BOOK_INSTRUMENTS)[number]): ImpairmentRow => {
-      const val = valMap.get(i.id);
-      const ecl = val?.instrument.eclProvision ?? 0;
-      const bsValue = val?.balanceSheetValueNGN ?? i.purchasePrice;
-      return {
-        id: i.id,
-        name: i.name,
-        type: i.instrumentType,
-        stage: i.impairmentStage ?? "N/A",
-        faceValue: i.faceValue,
-        bsValue,
-        ecl,
-        eclRate: i.faceValue > 0 ? ecl / i.faceValue : 0,
-      };
-    };
+  const valMap = new Map(
+    BOOK_COMPUTED.valuations.map((v) => [v.instrument.id, v]),
+  );
 
+  const watchRows: Row[] = BOOK_INSTRUMENTS.map((inst) => {
+    const val = valMap.get(inst.id);
+    const bsValue = val?.balanceSheetValueNGN ?? inst.purchasePrice;
+    const ociReserve = val?.ociReserve ?? 0;
+    const rating = RATING_MAP[inst.sector] ?? "BBB";
+    const flag: "watch" | "review" | "ok" =
+      inst.classification === "FVTPL" || bsValue < inst.purchasePrice * 0.92
+        ? "watch"
+        : ociReserve < -inst.purchasePrice * 0.05
+          ? "review"
+          : "ok";
     return {
-      stage1: BOOK_INSTRUMENTS.filter(
-        (i) => i.impairmentStage === "Stage 1",
-      ).map(toRow) as Row[],
-      stage2: BOOK_INSTRUMENTS.filter(
-        (i) => i.impairmentStage === "Stage 2",
-      ).map(toRow) as Row[],
-      stage3: BOOK_INSTRUMENTS.filter(
-        (i) => i.impairmentStage === "Stage 3",
-      ).map(toRow) as Row[],
-      totalECL: BOOK_COMPUTED.totals.totalECLNGN,
-      totalExposure: BOOK_COMPUTED.totals.totalBSValueNGN,
-    };
-  }, []);
+      id: inst.id,
+      name: inst.name,
+      type: inst.instrumentType,
+      sector: inst.sector,
+      bsValue,
+      ociReserve,
+      rating,
+      flag,
+    } as Row;
+  });
+
+  const watchList = watchRows.filter((r) => r.flag !== "ok");
+  const reviewList = watchRows.filter((r) => r.flag === "review");
+  const okList = watchRows.filter((r) => r.flag === "ok");
+
+  const totalBSV = BOOK_COMPUTED.totals.totalBSValueNGN;
+  const totalOCI = BOOK_COMPUTED.totals.totalOCIReserveNGN;
 
   const cols: DataTableColumn<Row>[] = [
     { key: "id", header: "ID", width: "90px" },
@@ -77,11 +86,26 @@ export function Impairment() {
         </Badge>
       ),
     },
+    { key: "sector", header: "Sector" },
     {
-      key: "faceValue",
-      header: "Face Value",
-      align: "right",
-      render: (r) => fmtCompact(r.faceValue),
+      key: "rating",
+      header: "Credit Rating",
+      render: (r) => (
+        <Badge
+          variant={
+            r.rating === "Sovereign"
+              ? "success"
+              : r.rating === "Unrated"
+                ? "neutral"
+                : r.rating === "BBB"
+                  ? "warning"
+                  : "info"
+          }
+          size="sm"
+        >
+          {r.rating}
+        </Badge>
+      ),
     },
     {
       key: "bsValue",
@@ -90,88 +114,124 @@ export function Impairment() {
       render: (r) => fmtCompact(r.bsValue),
     },
     {
-      key: "ecl",
-      header: "ECL Provision",
+      key: "ociReserve",
+      header: "OCI Reserve",
       align: "right",
       render: (r) => (
-        <span className="font-semibold text-primary">{fmtCompact(r.ecl)}</span>
+        <span
+          className={
+            r.ociReserve < 0 ? "font-semibold text-danger" : "text-success"
+          }
+        >
+          {r.ociReserve !== 0 ? fmtCompact(r.ociReserve) : "—"}
+        </span>
       ),
     },
     {
-      key: "eclRate",
-      header: "ECL Rate",
-      align: "right",
-      render: (r) => fmtPct(r.eclRate),
+      key: "flag",
+      header: "Status",
+      render: (r) =>
+        r.flag === "watch" ? (
+          <span className="flex items-center gap-1 text-xs text-danger">
+            <AlertTriangle className="h-3.5 w-3.5" /> Watch
+          </span>
+        ) : r.flag === "review" ? (
+          <span className="flex items-center gap-1 text-xs text-yellow-600">
+            <Eye className="h-3.5 w-3.5" /> Review
+          </span>
+        ) : (
+          <span className="flex items-center gap-1 text-xs text-success">
+            <ShieldCheck className="h-3.5 w-3.5" /> OK
+          </span>
+        ),
     },
-  ];
-
-  const stageSummary = [
-    { label: "Stage 1", items: stage1, variant: "stage1" as const },
-    { label: "Stage 2", items: stage2, variant: "stage2" as const },
-    { label: "Stage 3", items: stage3, variant: "stage3" as const },
   ];
 
   return (
     <div className="space-y-6 p-3 sm:p-4 md:p-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-dark-gray">
-          Impairment &amp; ECL Provisions
+          Impairment Monitoring
         </h1>
         <p className="mt-1 text-sm text-dark-gray/60">
-          Expected credit loss by IFRS 9 stage · Valuation date 28 May 2026
+          Credit watch, OCI reserve tracking, and specific provision management
+          · Valuation date 28 May 2026
         </p>
       </div>
 
       <StatCardGrid>
         <StatCard
-          title="Total ECL Provision"
-          value={fmtCompact(totalECL)}
-          subtitle="Aggregate expected credit loss"
-          variant="highlight"
+          title="Total OCI Reserve"
+          value={fmtCompact(Math.abs(totalOCI))}
+          subtitle={totalOCI >= 0 ? "Unrealised gain" : "Unrealised loss"}
+          variant={totalOCI < 0 ? "danger" : "default"}
         />
         <StatCard
-          title="Stage 1 Instruments"
-          value={String(stage1.length)}
-          subtitle="12-month ECL"
+          title="OCI as % of Book"
+          value={fmtPct(Math.abs(totalOCI) / totalBSV)}
+          subtitle="FVOCI reserve ratio"
           variant="default"
         />
         <StatCard
-          title="Stage 2 Instruments"
-          value={String(stage2.length)}
-          subtitle="Lifetime ECL — SICR"
+          title="Credit Watch"
+          value={String(watchList.length)}
+          subtitle="Instruments flagged for review"
           variant="warning"
         />
         <StatCard
-          title="Stage 3 Instruments"
-          value={String(stage3.length)}
-          subtitle="Lifetime ECL — Credit-impaired"
-          variant="danger"
+          title="Clean Book"
+          value={String(okList.length)}
+          subtitle="No impairment indicators"
+          variant="default"
         />
       </StatCardGrid>
 
-      {stageSummary.map(({ label, items, variant }) => (
+      <SectionCard
+        title="Credit Watch List"
+        description={`${watchList.length} instruments with impairment indicators or elevated OCI losses`}
+      >
+        <DataTable<Row>
+          columns={cols}
+          data={watchList}
+          keyExtractor={(r) => r.id}
+          emptyMessage="No instruments on credit watch"
+          pageSize={20}
+          onRowClick={setSelected}
+        />
+      </SectionCard>
+
+      {reviewList.length > 0 && (
         <SectionCard
-          key={label}
-          title={`${label} — ECL Provisions`}
-          description={`${items.length} instruments · Total ECL: ${fmtCompact(
-            items.reduce((s, r) => s + r.ecl, 0),
-          )}`}
+          title="Under Review — Specific Provision Candidates"
+          description={`${reviewList.length} instruments with material OCI losses — management review required`}
         >
           <DataTable<Row>
             columns={cols}
-            data={items}
+            data={reviewList}
             keyExtractor={(r) => r.id}
-            emptyMessage={`No ${label} instruments`}
             pageSize={20}
             onRowClick={setSelected}
           />
         </SectionCard>
-      ))}
+      )}
+
+      <SectionCard
+        title="Full Investment Book"
+        description={`${watchRows.length} instruments · Total book value: ${fmtCompact(totalBSV)}`}
+      >
+        <DataTable<Row>
+          columns={cols}
+          data={watchRows}
+          keyExtractor={(r) => r.id}
+          pageSize={15}
+          onRowClick={setSelected}
+        />
+      </SectionCard>
 
       <RowDetailModal
         isOpen={selected !== null}
         onClose={() => setSelected(null)}
-        title={selected?.name ?? "Impairment Detail"}
+        title={selected?.name ?? "Instrument Detail"}
         subtitle={selected?.id}
         fields={
           selected
@@ -185,18 +245,22 @@ export function Impairment() {
                     </Badge>
                   ),
                 },
-                { label: "Stage", value: selected.stage },
-                { label: "Face Value", value: fmtCompact(selected.faceValue) },
+                { label: "Sector", value: selected.sector },
+                { label: "Credit Rating", value: selected.rating },
                 { label: "Book Value", value: fmtCompact(selected.bsValue) },
                 {
-                  label: "ECL Provision",
-                  value: (
-                    <span className="font-semibold text-primary">
-                      {fmtCompact(selected.ecl)}
-                    </span>
-                  ),
+                  label: "OCI Reserve",
+                  value: fmtCompact(selected.ociReserve),
                 },
-                { label: "ECL Rate", value: fmtPct(selected.eclRate) },
+                {
+                  label: "Status",
+                  value:
+                    selected.flag === "watch"
+                      ? "Credit Watch"
+                      : selected.flag === "review"
+                        ? "Under Review"
+                        : "No Concerns",
+                },
               ]
             : []
         }

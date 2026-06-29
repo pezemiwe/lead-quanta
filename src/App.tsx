@@ -2,19 +2,20 @@ import { Component, type ErrorInfo, lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { PersonaProvider } from "./context/persona";
 import { GovernanceProvider } from "./context/governance";
+import { EntityProvider } from "./context/entity";
+import { NotificationsProvider } from "./context/notifications";
 import { PortfolioRegistryProvider } from "./features/portfolio/portfolio-registry";
+import { WorkflowProvider } from "./features/workflow/store";
 import { RequireAuth, ProtectedModule } from "./components/shared/require-auth";
 import { LandingPage } from "./pages/landing";
 import { LoginPage } from "./pages/login";
 import { ModulesPage } from "./pages/modules";
 import { PageLoader } from "./components/shared/loader";
+import { Toaster } from "./components/shared/toaster";
 
 /* ── Lazily-loaded modules (each gets its own JS chunk) ──────── */
 const PortfolioModule = lazy(() =>
   import("./features/portfolio").then((m) => ({ default: m.PortfolioModule })),
-);
-const IFRS9Module = lazy(() =>
-  import("./features/ifrs9").then((m) => ({ default: m.IFRS9Module })),
 );
 const ValuationModule = lazy(() =>
   import("./features/valuation").then((m) => ({ default: m.ValuationModule })),
@@ -36,6 +37,9 @@ const PerformanceModule = lazy(() =>
   import("./features/performance").then((m) => ({
     default: m.PerformanceModule,
   })),
+);
+const TradingDashboard = lazy(() =>
+  import("./features/trader").then((m) => ({ default: m.TradingDashboard })),
 );
 const AccountingModule = lazy(() =>
   import("./features/accounting").then((m) => ({
@@ -114,9 +118,12 @@ class RouteErrorBoundary extends Component<
 export function App() {
   return (
     <PersonaProvider>
+      <EntityProvider>
+      <NotificationsProvider>
       <GovernanceProvider>
-        <PortfolioRegistryProvider>
-          <RouteErrorBoundary>
+        <WorkflowProvider>
+          <PortfolioRegistryProvider>
+            <RouteErrorBoundary>
             <Suspense fallback={<PageLoader label="Loading module…" />}>
               <Routes>
               {/* Public */}
@@ -129,6 +136,16 @@ export function App() {
                 element={
                   <RequireAuth>
                     <ModulesPage />
+                  </RequireAuth>
+                }
+              />
+
+              {/* Front-office trading dashboard */}
+              <Route
+                path="/trader/dashboard"
+                element={
+                  <RequireAuth>
+                    <TradingDashboard />
                   </RequireAuth>
                 }
               />
@@ -147,24 +164,6 @@ export function App() {
                 element={
                   <ProtectedModule moduleId="portfolio">
                     <PortfolioModule />
-                  </ProtectedModule>
-                }
-              />
-
-              {/* IFRS 9 */}
-              <Route
-                path="/ifrs9"
-                element={
-                  <ProtectedModule moduleId="ifrs9">
-                    <IFRS9Module />
-                  </ProtectedModule>
-                }
-              />
-              <Route
-                path="/ifrs9/:page"
-                element={
-                  <ProtectedModule moduleId="ifrs9">
-                    <IFRS9Module />
                   </ProtectedModule>
                 }
               />
@@ -334,8 +333,12 @@ export function App() {
               </Routes>
             </Suspense>
           </RouteErrorBoundary>
-        </PortfolioRegistryProvider>
+          </PortfolioRegistryProvider>
+          <Toaster position="top-right" />
+        </WorkflowProvider>
       </GovernanceProvider>
+      </NotificationsProvider>
+      </EntityProvider>
     </PersonaProvider>
   );
 }

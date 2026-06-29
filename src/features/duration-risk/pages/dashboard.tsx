@@ -1,4 +1,4 @@
-import { Activity, Clock, Gauge, TrendingDown, Zap } from "lucide-react";
+﻿import { Activity, Clock, Gauge, TrendingDown, Zap } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -35,7 +35,7 @@ function shockBarColor(bps: number): string {
 
 const fmtNGNBillions = (v: number) => {
   const b = v / 1e9;
-  return `?${Math.abs(b).toFixed(1)}B`;
+  return `₦${Math.abs(b).toFixed(1)}B`;
 };
 
 export function DurationRiskDashboard() {
@@ -132,7 +132,7 @@ export function DurationRiskDashboard() {
               axisLine={false}
               tickLine={false}
               label={{
-                value: "Portfolio P&L Impact (? Billions)",
+                value: "Portfolio P&L Impact (₦ Billions)",
                 angle: -90,
                 position: "insideLeft",
                 offset: -8,
@@ -220,7 +220,7 @@ export function DurationRiskDashboard() {
       {/* Chart 3   Cash Flow Projection */}
       <SectionCard
         title="Chart 3   Cash Flow Projection by Maturity Bucket"
-        description="Future coupon (blue) and principal (orange) inflows in ?."
+        description="Future coupon (blue) and principal (orange) inflows in ₦."
       >
         <ResponsiveContainer width="100%" height={280}>
           <BarChart
@@ -235,12 +235,12 @@ export function DurationRiskDashboard() {
               tickLine={false}
             />
             <YAxis
-              tickFormatter={(v: number) => `?${(v / 1e9).toFixed(0)}B`}
+              tickFormatter={(v: number) => `₦${(v / 1e9).toFixed(0)}B`}
               tick={{ fontSize: 11, fill: "#6b7280" }}
               axisLine={false}
               tickLine={false}
               label={{
-                value: "Cash Flow (? Billions)",
+                value: "Cash Flow (₦ Billions)",
                 angle: -90,
                 position: "insideLeft",
                 offset: -8,
